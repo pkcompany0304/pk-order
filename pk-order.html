@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>PK 사입/발주</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{font-family:-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo',sans-serif;background:#f2f2f7;color:#1c1c1e;padding-bottom:70px}
+.header{position:sticky;top:0;z-index:100;background:#fff;padding:10px 12px;border-bottom:1px solid #e5e5ea}
+.header-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.header-top h1{font-size:15px;font-weight:700}
+.tab-bar{display:flex;gap:6px}
+.tab{padding:5px 12px;border-radius:16px;font-size:12px;font-weight:600;border:none;background:#e5e5ea;color:#3a3a3c;cursor:pointer}
+.tab.active{background:#007aff;color:#fff}
+.rate-bar{display:flex;align-items:center;gap:6px;font-size:13px}
+.rate-bar label{color:#636366;font-weight:500;white-space:nowrap}
+.rate-input{width:60px;padding:5px 8px;border:1.5px solid #e5e5ea;border-radius:8px;font-size:14px;font-weight:600;text-align:center;-webkit-appearance:none}
+.rate-input:focus{border-color:#007aff;outline:none}
+.rate-bar span{color:#aeaeb2;font-size:12px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:8px}
+.card{background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 1px 2px rgba(0,0,0,.06)}
+.card-img{width:100%;aspect-ratio:1;object-fit:cover;display:block}
+.card-body{padding:8px}
+.card-code{font-size:12px;font-weight:700;color:#1c1c1e;margin-bottom:2px}
+.card-name{font-size:10px;color:#8e8e93;line-height:1.3;margin-bottom:4px;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden}
+/* 가격 영역 */
+.price-block{margin-bottom:4px}
+.price-row{display:flex;align-items:baseline;gap:4px;flex-wrap:wrap}
+.price-total{font-size:15px;font-weight:700;color:#ff3b30}
+.price-detail{font-size:10px;color:#8e8e93;line-height:1.4}
+.price-detail b{color:#636366;font-weight:600}
+/* 카테고리 셀렉트 — 가격 상세 라인에 인라인 */
+.cat-select{font-size:10px;padding:1px 3px;border:1px solid #d1d1d6;border-radius:3px;background:#f2f2f7;color:#636366;-webkit-appearance:none;font-weight:600;vertical-align:baseline}
+.sizes{display:flex;gap:3px;flex-wrap:wrap;margin-bottom:6px}
+.size-tag{font-size:10px;background:#f2f2f7;color:#636366;padding:2px 5px;border-radius:4px;font-weight:500}
+.date-tag{font-size:10px;color:#aeaeb2}
+.btn-sample{width:100%;padding:8px;border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;background:#34c759;color:#fff}
+.btn-sample:active{opacity:.7;transform:scale(.97)}
+.order-section{display:none;margin-top:6px;padding-top:6px;border-top:1px solid #f2f2f7}
+.order-section.show{display:block}
+.order-row{display:flex;align-items:center;gap:4px;margin-bottom:4px}
+.order-row label{font-size:11px;color:#636366;width:30px;flex-shrink:0;text-align:center}
+.order-row input{flex:1;padding:6px;border:1.5px solid #e5e5ea;border-radius:6px;font-size:14px;text-align:center;-webkit-appearance:none}
+.order-row input:focus{border-color:#007aff;outline:none}
+.client-select{width:100%;padding:6px;border:1.5px solid #e5e5ea;border-radius:6px;font-size:12px;margin-bottom:6px;-webkit-appearance:none;background:#fff}
+.bottom-bar{position:fixed;bottom:0;left:0;right:0;background:#fff;padding:10px 12px;padding-bottom:max(10px,env(safe-area-inset-bottom));border-top:1px solid #e5e5ea;display:none;z-index:100}
+.bottom-bar.show{display:flex;gap:8px;align-items:center}
+.order-summary{flex:1;font-size:13px;font-weight:600}.order-summary span{color:#ff3b30}
+.btn-order{padding:10px 20px;border:none;border-radius:10px;font-size:14px;font-weight:600;background:#007aff;color:#fff;cursor:pointer;flex-shrink:0}
+.btn-order:active{opacity:.7}
+.toast{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(.8);background:rgba(0,0,0,.78);color:#fff;padding:12px 24px;border-radius:12px;font-size:14px;font-weight:600;opacity:0;transition:all .25s;pointer-events:none;z-index:200;text-align:center}
+.toast.show{opacity:1;transform:translate(-50%,-50%) scale(1)}
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="header-top">
+    <h1>AOPI.有米家</h1>
+    <div class="tab-bar">
+      <button class="tab active" onclick="setMode('sample')">사입</button>
+      <button class="tab" onclick="setMode('order')">발주</button>
+    </div>
+  </div>
+  <div class="rate-bar">
+    <label>환율 ¥1 =</label>
+    <input class="rate-input" id="rateInput" type="number" inputmode="decimal" value="190" onchange="onRateChange()" onfocus="this.select()">
+    <span>원</span>
+  </div>
+</div>
+
+<div class="grid" id="cards"></div>
+<div class="bottom-bar" id="bottomBar">
+  <div class="order-summary">총 <span id="totalQty">0</span>장</div>
+  <button class="btn-order" onclick="generateOrder()">발주 메시지 복사</button>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+// 운임 카테고리: cat 값
+// tee=티셔츠/조끼 2000, knit=니트 2500, dress=원피스 2500, jacket=자켓 5000, set2=세트2p 4000, set3=세트3p 6000
+const CAT_INFO = {
+  tee:    {label:'티/조끼', ship:2000},
+  knit:   {label:'니트',    ship:2500},
+  dress:  {label:'원피스',  ship:2500},
+  jacket: {label:'자켓',    ship:5000},
+  set2:   {label:'세트2p',  ship:4000},
+  set3:   {label:'세트3p',  ship:6000},
+};
+const CAT_KEYS = Object.keys(CAT_INFO);
+
+// cat: AI가 사진+상품명 기준 자동 분류한 값. 사용자가 변경 가능.
+// 마지막 업데이트: 2026-05-27 자동 크롤링
+const PRODUCTS = [
+  {t:"🅿39 爆款跑量背心现货，码数M-XXL",p:39,s:"M/L/XL/XXL",i:"https://xcimg.szwego.com/imgHD/f787a9a5/20260304/cmp_a1772622341612_1480.jpg",d:"03/25",code:"P39",cat:"tee"},
+  {t:"🅿️59 prad牛仔吊带sm",p:59,s:"S/M",i:"https://xcimg.szwego.com/img/e2b146c4/20240417/a1713333914458_1385.jpg",d:"1분전",code:"P59",cat:"tee"},
+  {t:"🅿️65 新款D家钉珠满印T恤🔥🔥，SML",p:65,s:"S/M/L",i:"https://xcimg.szwego.com/20240515/i1715748055_9974_0.jpg",d:"1분전",code:"P65",cat:"tee"},
+  {t:"🅿️65 大货实拍。新款活性定位满印纯棉T恤，❤手工钉珠超精致🔥🔥SML",p:65,s:"S/M/L",i:"https://xcimg.szwego.com/img/e2b146c4/20240222/a1708590986348_2046.jpg",d:"1분전",code:"P65b",cat:"tee"},
+  {t:"🅿️149 高质量超级爆款呢子大衣，配送腰带，🔥卡其/咖啡/黑/灰 SML",p:149,s:"S/M/L",i:"https://xcimg.szwego.com/imgHD/e2b146c4/20250919/cmp_a1758262692687_1836.jpg",d:"1분전",code:"P149",cat:"jacket"},
+];
+
+const CLIENTS = ['신월동','잠실','위례','성남','용산','신림','청라','면목','연신내'];
+let mode = 'sample';
+
+function getRate() { return parseFloat(document.getElementById('rateInput').value) || 190; }
+
+function getShip(cat) { return CAT_INFO[cat]?.ship || 2000; }
+
+function fmtKrw(val) {
+  val = Math.round(val);
+  return val >= 10000 ? (val/10000).toFixed(1)+'만' : val.toLocaleString();
+}
+
+function onRateChange() { render(); }
+
+function onCatChange(idx, val) {
+  PRODUCTS[idx].cat = val;
+  render();
+}
+
+function setMode(m) {
+  mode = m;
+  document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', (i===0&&m==='sample')||(i===1&&m==='order')));
+  document.querySelectorAll('.order-section').forEach(el => el.classList.toggle('show', m==='order'));
+  document.getElementById('bottomBar').classList.toggle('show', m==='order');
+  if(m==='order') updateTotal();
+}
+
+function render() {
+  const r = getRate();
+  const el = document.getElementById('cards');
+  el.innerHTML = PRODUCTS.map((p,idx) => {
+    const sizes = p.s.split('/').filter(Boolean);
+    const costKrw = Math.round(p.p * r);
+    const ship = getShip(p.cat);
+    const totalKrw = costKrw + ship;
+    const catLabel = CAT_INFO[p.cat]?.label || '?';
+
+    const catOptions = CAT_KEYS.map(k =>
+      `<option value="${k}"${k===p.cat?' selected':''}>${CAT_INFO[k].label} ₩${CAT_INFO[k].ship.toLocaleString()}</option>`
+    ).join('');
+
+    const sizeInputs = sizes.map(sz =>
+      `<div class="order-row"><label>${sz}</label><input type="number" inputmode="numeric" pattern="[0-9]*" min="0" placeholder="0" data-idx="${idx}" data-size="${sz}" oninput="onQtyChange()"></div>`
+    ).join('');
+
+    return `
+    <div class="card">
+      <img class="card-img" src="${p.i}?imageMogr2/auto-orient/thumbnail/!400x400r/quality/75/format/jpg" alt="${p.code}" loading="lazy">
+      <div class="card-body">
+        <div class="card-code">${p.code}</div>
+        <div class="card-name">${p.t}</div>
+        <div class="price-block">
+          <div class="price-row">
+            <span class="price-total">₩${fmtKrw(totalKrw)}</span>
+          </div>
+          <div class="price-detail">₩${fmtKrw(costKrw)} + <select class="cat-select" onchange="onCatChange(${idx},this.value)">${catOptions}</select></div>
+        </div>
+        <div class="sizes">${sizes.map(s=>`<span class="size-tag">${s}</span>`).join('')} <span class="date-tag">${p.d}</span></div>
+        <button class="btn-sample" onclick="sampleOrder(${idx})">사입 메시지 복사</button>
+        <div class="order-section${mode==='order'?' show':''}">
+          <select class="client-select" data-idx="${idx}">
+            <option value="">거래처</option>
+            ${CLIENTS.map(c=>`<option value="${c}">${c}</option>`).join('')}
+          </select>
+          ${sizeInputs}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function sampleOrder(idx) {
+  const p = PRODUCTS[idx];
+  const sizes = p.s.split('/').filter(Boolean);
+  let light = sizes.length >= 2 ? sizes[Math.floor(sizes.length/2)-1] : sizes[0];
+  let dark = sizes.length >= 2 ? sizes[Math.floor(sizes.length/2)] : sizes[0];
+  const msg = `拿样: ${p.code} ${p.t}\n浅色 ${light}-1  深色 ${dark}-1\n共2件  ¥${p.p}/件`;
+  copyText(msg);
+  showToast('사입 메시지 복사!\n위챗에 붙여넣기');
+}
+
+function onQtyChange() { updateTotal(); }
+
+function updateTotal() {
+  let total = 0;
+  document.querySelectorAll('.order-section input[type="number"]').forEach(inp => {
+    total += parseInt(inp.value) || 0;
+  });
+  document.getElementById('totalQty').textContent = total;
+}
+
+function generateOrder() {
+  const orders = {};
+  document.querySelectorAll('.card').forEach((card, idx) => {
+    const p = PRODUCTS[idx];
+    const client = card.querySelector('.client-select')?.value || '';
+    card.querySelectorAll('input[type="number"]').forEach(inp => {
+      const qty = parseInt(inp.value) || 0;
+      if (qty > 0) {
+        const sz = inp.dataset.size;
+        if (!orders[p.code]) orders[p.code] = {title:p.t, price:p.p, sizes:{}, clients:{}};
+        orders[p.code].sizes[sz] = (orders[p.code].sizes[sz]||0) + qty;
+        if (client) {
+          if (!orders[p.code].clients[client]) orders[p.code].clients[client] = {};
+          orders[p.code].clients[client][sz] = (orders[p.code].clients[client][sz]||0) + qty;
+        }
+      }
+    });
+  });
+  if (!Object.keys(orders).length) { showToast('수량을 입력해주세요'); return; }
+
+  let msg = '【订单】\n';
+  let grandTotal = 0;
+  for (const [code, data] of Object.entries(orders)) {
+    const sizeParts = Object.entries(data.sizes).map(([sz,qty])=>`${sz}-${qty}`);
+    const sub = Object.values(data.sizes).reduce((a,b)=>a+b,0);
+    grandTotal += sub;
+    msg += `${code}: ${sizeParts.join(' ')} (${sub}件)\n`;
+  }
+  msg += `共${grandTotal}件`;
+  copyText(msg);
+  showToast(`발주 복사 완료!\n${grandTotal}장`);
+}
+
+function copyText(text) {
+  if (navigator.clipboard?.writeText) navigator.clipboard.writeText(text).catch(()=>fallbackCopy(text));
+  else fallbackCopy(text);
+}
+function fallbackCopy(text) {
+  const ta=document.createElement('textarea');ta.value=text;ta.style.cssText='position:fixed;left:-9999px';
+  document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);
+}
+function showToast(msg) {
+  const t=document.getElementById('toast');t.innerHTML=msg.replace(/\n/g,'<br>');
+  t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1800);
+}
+
+render();
+</script>
+</body>
+</html>
