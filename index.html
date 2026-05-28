@@ -155,7 +155,7 @@ body{font-family:'Pretendard',-apple-system,BlinkMacSystemFont,'SF Pro Display',
     </div>
     <div style="display:flex">
       <button class="btn-copy" onclick="generateOrder()">발주서 복사</button>
-      <button class="btn-wechat" onclick="sendToWeChat()">공유</button>
+      <button class="btn-wechat" onclick="sendToWeChat()">위챗</button>
     </div>
   </div>
 </div>
@@ -1910,30 +1910,13 @@ function openAOPIGroup() {
   }
 }
 
-// ===== 위챗 공유 (Web Share API) =====
+// ===== 위챗 열기 =====
 async function sendToWeChat() {
   const msg = buildOrderMsg();
   if (!msg) return;
-
-  // iOS/Android 네이티브 공유 시트 → 위챗 그룹 직접 선택 가능
-  if (navigator.share) {
-    try {
-      await navigator.share({ text: msg });
-      return;
-    } catch(e) {
-      if (e.name === 'AbortError') return; // 사용자가 취소
-      // share 실패 시 클립보드 폴백
-    }
-  }
-
-  // 폴백: 클립보드 복사
-  await navigator.clipboard.writeText(msg).catch(() => {
-    const el = document.createElement('textarea');
-    el.value = msg; document.body.appendChild(el);
-    el.select(); document.execCommand('copy');
-    document.body.removeChild(el);
-  });
-  showToast('클립보드 복사 완료\n위챗에 붙여넣기!');
+  copyText(msg);
+  showToast('복사 완료!\n위챗 단체방에 붙여넣기');
+  setTimeout(() => { window.location.href = 'weixin://'; }, 400);
 }
 
 // 발주서 텍스트 생성 (공통)
