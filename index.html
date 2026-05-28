@@ -3239,17 +3239,10 @@ function renderSample() {
   let lastDate = null;
 
   // 실제 업로드일(d 필드) 기준 최신순 정렬
+  // 같은 날짜 내에서는 크롤 순서(API 타임스탬프순) 유지 → stable sort
   visible.sort((a, b) => {
-    // d 필드: "MM/DD" 형식 → 1순위 정렬
     const toNum = d => d ? parseInt(d.replace('/', '')) : 0;
-    const diff = toNum(b.d) - toNum(a.d);
-    if (diff !== 0) return diff;
-    // 동일 날짜면 이미지 URL 날짜로 2순위 정렬
-    const reDt = /\/(20\d{2})(0[1-9]|1[0-2])(0[1-9]|[12]\d|3[01])\//;
-    const da = a.i.match(reDt), db = b.i.match(reDt);
-    const sa = da ? da[1]+da[2]+da[3] : '20000101';
-    const sb = db ? db[1]+db[2]+db[3] : '20000101';
-    return sb.localeCompare(sa);
+    return toNum(b.d) - toNum(a.d);
   });
 
   visible.forEach((p) => {
