@@ -104,7 +104,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Apple SD Got
 <div class="header">
   <div class="header-top">
     <h1 id="headerTitle">AOPI.有米家</h1>
-    <div class="badge-count" id="badgeCount"></div>
+    <div style="display:flex;align-items:center;gap:6px">
+      <div class="badge-count" id="badgeCount"></div>
+      <button onclick="location.reload()" style="background:none;border:none;font-size:16px;cursor:pointer;padding:2px;line-height:1" title="새로고침">🔄</button>
+    </div>
   </div>
   <div class="rate-bar">
     <label>환율 ¥1 =</label>
@@ -1648,9 +1651,13 @@ function renderOrder() {
     colors.forEach(color => {
       colorSizeInputs += `<div class="color-label">${color}</div>`;
       colorSizeInputs += `<div class="size-input-row">`;
-      sizes.forEach(sz => {
-        colorSizeInputs += `<div class="size-cell"><label>${sz}</label><input type="number" inputmode="numeric" min="0" placeholder="0" data-code="${p.code}" data-size="${sz}" data-color="${color}" oninput="updateTotal()"></div>`;
-      });
+      if (sizes.length > 0) {
+        sizes.forEach(sz => {
+          colorSizeInputs += `<div class="size-cell"><label>${sz}</label><input type="number" inputmode="numeric" min="0" placeholder="0" data-code="${p.code}" data-size="${sz}" data-color="${color}" oninput="updateTotal()"></div>`;
+        });
+      } else {
+        colorSizeInputs += `<div class="size-cell"><label>수량</label><input type="number" inputmode="numeric" min="0" placeholder="0" data-code="${p.code}" data-size="F" data-color="${color}" oninput="updateTotal()"></div>`;
+      }
       colorSizeInputs += `</div>`;
     });
 
