@@ -1929,19 +1929,16 @@ function buildOrderMsg() {
   const clientIdx = document.getElementById('headerClientSelect').value;
   const clientObj = clientIdx !== '' ? CLIENTS[parseInt(clientIdx)] : null;
   const clientName = clientObj ? clientObj.name : '';
-  const r = getRate();
   const orders = {};
 
   document.querySelectorAll('.order-card').forEach(card => {
     const code = card.dataset.code;
-    const p = PRODUCTS.find(pr => pr.code === code);
-    if (!p) return;
     card.querySelectorAll('.qty-input').forEach(inp => {
       const qty = parseInt(inp.value) || 0;
       if (qty > 0) {
         const sz = inp.dataset.size || '';
         const color = inp.dataset.color || '기본';
-        if (!orders[code]) orders[code] = {title:p.t, price:p.p, items:[], p};
+        if (!orders[code]) orders[code] = {items:[]};
         orders[code].items.push({sz, color, qty});
       }
     });
@@ -1950,85 +1947,31 @@ function buildOrderMsg() {
   if (!Object.keys(orders).length) { showToast('수량을 입력해주세요'); return null; }
 
   const today = new Date();
-  const dateStr = `${today.getFullYear()}.${String(today.getMonth()+1).padStart(2,'0')}.${String(today.getDate()).padStart(2,'0')}`;
-  let msg = `【발주서】${dateStr}\n`;
-  if (clientName) msg += `${clientName}\n`;
-  msg += `─────────────\n`;
+  const dateStr = `${today.getMonth()+1}월 ${today.getDate()}일`;
+  let msg = dateStr + '\n';
+  if (clientName) msg += clientName + '\n';
 
-  let grandQty = 0, grandKrw = 0;
+  let grandQty = 0;
   for (const [code, data] of Object.entries(orders)) {
-    let sub = 0;
+    msg += `${code}\n`;
     const parts = [];
     data.items.forEach(({sz, color, qty}) => {
-      sub += qty;
+      grandQty += qty;
       parts.push(color !== '기본' ? `${color} ${sz}-${qty}` : `${sz}-${qty}`);
     });
-    grandQty += sub;
-    const ship = getShip(data.p.cat);
-    const unitKrw = Math.round(data.p.p * r) + ship;
-    grandKrw += unitKrw * sub;
-    msg += `${code} (${sub}장) ₩${fmtKrw(unitKrw * sub)}\n`;
     msg += `  ${parts.join(' / ')}\n`;
   }
-  msg += `─────────────\n`;
-  msg += `총 ${grandQty}장  합계 ₩${fmtKrw(grandKrw)}`;
+  msg += `총 ${grandQty}장`;
   return msg;
 }
 
 // ===== 발주 메시지 생성 =====
 function generateOrder() {
-  const clientIdx = document.getElementById('headerClientSelect').value;
-  const clientObj = clientIdx !== '' ? CLIENTS[parseInt(clientIdx)] : null;
-  const clientName = clientObj ? clientObj.name : '';
-  const clientWx = clientObj ? clientObj.wx : '';
-  const r = getRate();
-  const orders = {};
-
-  document.querySelectorAll('.order-card').forEach(card => {
-    const code = card.dataset.code;
-    const p = PRODUCTS.find(pr => pr.code === code);
-    if (!p) return;
-    card.querySelectorAll('.qty-input').forEach(inp => {
-      const qty = parseInt(inp.value) || 0;
-      if (qty > 0) {
-        const sz = inp.dataset.size || '';
-        const color = inp.dataset.color || '기본';
-        if (!orders[code]) orders[code] = {title:p.t, price:p.p, items:[], p};
-        orders[code].items.push({sz, color, qty});
-      }
-    });
-  });
-
-  if (!Object.keys(orders).length) { showToast('수량을 입력해주세요'); return; }
-
-  const rateVal = getRate();
-  const today = new Date();
-  const dateStr = `${today.getFullYear()}.${String(today.getMonth()+1).padStart(2,'0')}.${String(today.getDate()).padStart(2,'0')}`;
-  let msg = `【발주서】${dateStr}\n`;
-  if (clientName) msg += `${clientName}\n`;
-  msg += `─────────────\n`;
-  let grandQty = 0;
-  let grandKrw = 0;
-  for (const [code, data] of Object.entries(orders)) {
-    let sub = 0;
-    const parts = [];
-    data.items.forEach(({sz, color, qty}) => {
-      sub += qty;
-      const label = color !== '기본' ? `${color} ${sz}` : sz;
-      parts.push(`${label}-${qty}`);
-    });
-    grandQty += sub;
-    const ship = getShip(data.p.cat);
-    const unitKrw = Math.round(data.p.p * rateVal) + ship;
-    const subtotalKrw = unitKrw * sub;
-    grandKrw += subtotalKrw;
-    msg += `${code} (${sub}장) ₩${fmtKrw(subtotalKrw)}\n`;
-    msg += `  ${parts.join(' / ')}\n`;
-  }
-  msg += `─────────────\n`;
-  msg += `총 ${grandQty}장  합계 ₩${fmtKrw(grandKrw)}`;
+  const msg = buildOrderMsg();
+  if (!msg) return;
   copyText(msg);
-  showToast(`발주 복사 완료!\n${grandQty}장 / ₩${fmtKrw(grandKrw)}`);
+  const grandQty = (msg.match(/총 (\d+)장/) || [])[1] || '';
+  showToast(`발주 복사 완료!\n총 ${grandQty}장`);
 }
 
 // ===== 클립보드 =====
