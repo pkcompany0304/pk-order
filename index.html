@@ -155,7 +155,7 @@ body{font-family:'Pretendard',-apple-system,BlinkMacSystemFont,'SF Pro Display',
     </div>
     <div style="display:flex">
       <button class="btn-copy" onclick="generateOrder()">발주서 복사</button>
-      <button class="btn-wechat" onclick="sendToWeChat()">💬 위챗</button>
+      <button class="btn-wechat" onclick="sendToWeChat()">공유</button>
     </div>
   </div>
 </div>
@@ -1910,34 +1910,30 @@ function openAOPIGroup() {
   }
 }
 
-// ===== 위챗 원클릭 발주 =====
+// ===== 위챗 공유 (Web Share API) =====
 async function sendToWeChat() {
-  const clientIdx = document.getElementById('headerClientSelect').value;
-  const clientObj = clientIdx !== '' ? CLIENTS[parseInt(clientIdx)] : null;
-
-  if (!clientObj) { showToast('거래처를 먼저 선택해주세요'); return; }
-
-  // 발주서 생성 (generateOrder와 동일 로직, 복사 없이 텍스트만 반환)
   const msg = buildOrderMsg();
   if (!msg) return;
 
-  // 클립보드 복사
+  // iOS/Android 네이티브 공유 시트 → 위챗 그룹 직접 선택 가능
+  if (navigator.share) {
+    try {
+      await navigator.share({ text: msg });
+      return;
+    } catch(e) {
+      if (e.name === 'AbortError') return; // 사용자가 취소
+      // share 실패 시 클립보드 폴백
+    }
+  }
+
+  // 폴백: 클립보드 복사
   await navigator.clipboard.writeText(msg).catch(() => {
     const el = document.createElement('textarea');
     el.value = msg; document.body.appendChild(el);
     el.select(); document.execCommand('copy');
     document.body.removeChild(el);
   });
-
-  // 위챗 딥링크
-  if (clientObj.wx) {
-    window.location.href = `weixin://dl/chat?username=${clientObj.wx}`;
-    showToast('클립보드 복사 완료\n위챗 채팅창에서 붙여넣기 후 전송!');
-  } else {
-    // wx ID 없으면 위챗 앱만 열기
-    window.location.href = 'weixin://';
-    showToast(`클립보드 복사 완료\n${clientObj.name} 채팅창에 붙여넣기!`);
-  }
+  showToast('클립보드 복사 완료\n위챗에 붙여넣기!');
 }
 
 // 발주서 텍스트 생성 (공통)
