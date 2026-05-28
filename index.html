@@ -53,6 +53,11 @@ body{font-family:'Pretendard',-apple-system,BlinkMacSystemFont,'SF Pro Display',
 
 .product-thumb{position:relative;width:100%;aspect-ratio:1/1.35;overflow:hidden;background:#1a1a1a}
 .product-thumb img{width:100%;height:100%;object-fit:cover;object-position:center 20%;display:block}
+.img-strip{display:flex;width:100%;height:100%;transition:transform 0.22s ease;will-change:transform}
+.img-strip img{flex-shrink:0;min-width:100%;height:100%;object-fit:cover;object-position:center 20%;display:block}
+.img-dots{position:absolute;bottom:6px;left:50%;transform:translateX(-50%);display:flex;gap:4px;pointer-events:none;z-index:1}
+.img-dot{width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,0.45);transition:background 0.15s}
+.img-dot.active{background:rgba(255,255,255,0.95)}
 
 .product-badge{position:absolute;top:8px;left:8px;background:rgba(0,0,0,0.6);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);color:white;font-size:11px;font-weight:600;padding:3px 8px;border-radius:6px}
 .qty-badge{position:absolute;top:8px;right:8px;background:var(--accent);color:white;font-size:11px;font-weight:700;width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center}
@@ -1733,11 +1738,20 @@ function renderOrder() {
 
     const cleanTitle = p.t.replace(/^\d+#💰[\d.]+¥\s*/,'').replace(/^\d+#[^¥]*¥\s*/,'') || p.t;
 
+    // 이미지 갤러리: imgs[] 배열 우선, 없으면 단일 이미지
+    const imgArr = (p.imgs && p.imgs.length > 0) ? p.imgs : [p.i];
+    const imgStripHtml = imgArr.map((url, ii) =>
+      `<img src="${url}?imageMogr2/auto-orient/thumbnail/!400x400r/quality/75/format/jpg" loading="${ii===0?'eager':'lazy'}" onerror="this.style.display='none'">`
+    ).join('');
+    const dotsHtml = imgArr.length > 1
+      ? `<div class="img-dots">${imgArr.map((_,ii) => `<div class="img-dot${ii===0?' active':''}"></div>`).join('')}</div>`
+      : '';
+
     html += `
     <div class="order-card" data-code="${p.code}" data-sizes="${displaySizes.join('/')}">
-      <div class="product-thumb">
-        <img src="${p.i}?imageMogr2/auto-orient/thumbnail/!400x400r/quality/75/format/jpg"
-             loading="lazy" onerror="this.style.display='none'">
+      <div class="product-thumb" ontouchstart="imgSwipeStart(event,this)" ontouchend="imgSwipeEnd(event,this)">
+        <div class="img-strip">${imgStripHtml}</div>
+        ${dotsHtml}
         <span class="product-badge">#${p.code}</span>
         <div class="qty-badge" id="qtyBadge_${p.code}" style="display:none">0</div>
       </div>
@@ -1777,6 +1791,37 @@ function makeColorRowGrid(code, sizes, colorName) {
   }
   html += '</div>';
   return html;
+}
+
+// ===== 이미지 갤러리 스와이프 =====
+let _imgSwX = 0, _imgSwY = 0;
+function imgSwipeStart(e, thumb) {
+  const t = e.touches[0];
+  _imgSwX = t.clientX; _imgSwY = t.clientY;
+}
+function imgSwipeEnd(e, thumb) {
+  const t = e.changedTouches[0];
+  const dx = t.clientX - _imgSwX;
+  const dy = t.clientY - _imgSwY;
+  if (Math.abs(dy) > Math.abs(dx) + 10) return; // vertical scroll → ignore
+  if (Math.abs(dx) < 18) { // tap
+    const rect = thumb.getBoundingClientRect();
+    const tapX = (t.clientX - rect.left) / rect.width;
+    if (tapX < 0.35) imgNav(thumb, -1);
+    else if (tapX > 0.65) imgNav(thumb, 1);
+    return;
+  }
+  imgNav(thumb, dx < 0 ? 1 : -1);
+}
+function imgNav(thumb, dir) {
+  const strip = thumb.querySelector('.img-strip');
+  if (!strip) return;
+  const total = strip.querySelectorAll('img').length;
+  if (total <= 1) return;
+  let idx = (parseInt(strip.dataset.idx || '0') + dir + total) % total;
+  strip.dataset.idx = idx;
+  strip.style.transform = 'translateX(-' + (idx * 100) + '%)';
+  thumb.querySelectorAll('.img-dot').forEach((d, i) => d.classList.toggle('active', i === idx));
 }
 
 function addColorRowGrid(code) {
