@@ -1860,7 +1860,10 @@ function generateOrder() {
   if (!Object.keys(orders).length) { showToast('수량을 입력해주세요'); return; }
 
   const rateVal = getRate();
-  let msg = clientName ? `【발주서】${clientName}\n` : '【발주서】\n';
+  const today = new Date();
+  const dateStr = `${today.getFullYear()}.${String(today.getMonth()+1).padStart(2,'0')}.${String(today.getDate()).padStart(2,'0')}`;
+  let msg = `【발주서】${dateStr}\n`;
+  if (clientName) msg += `${clientName}\n`;
   msg += `─────────────\n`;
   let grandQty = 0;
   let grandKrw = 0;
