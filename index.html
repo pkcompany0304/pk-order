@@ -11,11 +11,13 @@
 body{font-family:'Pretendard',-apple-system,BlinkMacSystemFont,'SF Pro Display','Apple SD Gothic Neo',sans-serif;background:var(--bg);color:var(--text-primary);padding-bottom:90px;-webkit-font-smoothing:antialiased}
 
 /* ===== 헤더 ===== */
-.header{position:sticky;top:0;z-index:100;background:rgba(255,255,255,0.95);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);padding:12px 16px;border-bottom:1px solid var(--border)}
+.header{position:sticky;top:0;z-index:100;background:rgba(255,255,255,0.95);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);padding:12px 16px 10px;border-bottom:1px solid var(--border)}
+.exchange-chip{display:flex;align-items:center;gap:3px;font-size:12px;color:var(--text-secondary);white-space:nowrap}
+.exchange-chip .rate-input{width:42px;padding:3px 0;border:1px solid var(--border);background:var(--border-light);font-size:12px;font-weight:700;text-align:center;border-radius:5px;-webkit-appearance:none;outline:none}
 .header-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
 .header-top h1{font-size:17px;font-weight:700;letter-spacing:-0.3px}
 .badge-count{background:var(--accent);color:#fff;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600}
-.rate-bar{display:flex;align-items:center;gap:8px;font-size:13px;margin-bottom:8px}
+.rate-bar{display:none}
 .rate-bar label{color:#636366;font-weight:500;white-space:nowrap}
 .rate-input{width:64px;padding:6px 8px;border:1.5px solid #e5e5ea;border-radius:8px;font-size:14px;font-weight:600;text-align:center;-webkit-appearance:none;background:#fff}
 .rate-input:focus{border-color:#007aff;outline:none}
@@ -49,7 +51,7 @@ body{font-family:'Pretendard',-apple-system,BlinkMacSystemFont,'SF Pro Display',
 .product-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:10px;padding-bottom:140px}
 .order-card{background:var(--surface);border-radius:14px;overflow:hidden;border:1px solid var(--border-light)}
 
-.product-thumb{position:relative;width:100%;aspect-ratio:1/1.25;overflow:hidden;background:#1a1a1a}
+.product-thumb{position:relative;width:100%;aspect-ratio:1/1.35;overflow:hidden;background:#1a1a1a}
 .product-thumb img{width:100%;height:100%;object-fit:cover;object-position:center 20%;display:block}
 
 .product-badge{position:absolute;top:8px;left:8px;background:rgba(0,0,0,0.6);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);color:white;font-size:11px;font-weight:600;padding:3px 8px;border-radius:6px}
@@ -74,10 +76,10 @@ body{font-family:'Pretendard',-apple-system,BlinkMacSystemFont,'SF Pro Display',
 /* ===== 하단 탭바 ===== */
 .tab-bar-wrap{position:fixed;bottom:0;left:0;right:0;background:rgba(255,255,255,0.95);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);z-index:200}
 .tab-bar{display:flex;border-top:1px solid var(--border-light);padding:4px 0 env(safe-area-inset-bottom,4px)}
-.tab{flex:1;padding:6px 0 3px;border:none;background:none;font-size:9px;font-weight:600;color:var(--text-tertiary);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:1px;position:relative}
+.tab{flex:1;padding:10px 0 5px;border:none;background:none;font-size:11px;font-weight:600;color:var(--text-tertiary);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;position:relative}
 .tab.active{color:var(--accent)}
 .tab.active svg{color:var(--accent)}
-.tab svg{width:18px;height:18px;color:var(--text-tertiary)}
+.tab svg{width:22px;height:22px;color:var(--text-tertiary)}
 .tab-badge{position:absolute;top:3px;right:calc(50% - 16px);background:var(--accent);color:#fff;font-size:8px;font-weight:700;width:14px;height:14px;border-radius:50%;display:none;align-items:center;justify-content:center}
 .tab-badge.show{display:flex}
 
@@ -89,9 +91,9 @@ body{font-family:'Pretendard',-apple-system,BlinkMacSystemFont,'SF Pro Display',
 .summary-total{font-size:12px;color:var(--text-secondary)}
 .summary-total strong{font-size:18px;font-weight:800;color:var(--text-primary);letter-spacing:-0.03em}
 .summary-amount{font-size:14px;font-weight:700;color:var(--accent)}
-.btn-copy{background:var(--text-primary);color:white;border:none;padding:10px 16px;border-radius:10px;font-size:12px;font-weight:700;font-family:inherit;cursor:pointer}
+.btn-copy{background:var(--text-primary);color:white;border:none;padding:13px 20px;border-radius:10px;font-size:14px;font-weight:700;font-family:inherit;cursor:pointer}
 .btn-copy:active{transform:scale(0.96);opacity:0.85}
-.btn-wechat{background:#07c160;color:white;border:none;padding:10px 14px;border-radius:10px;font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;margin-left:6px}
+.btn-wechat{background:#07c160;color:white;border:none;padding:13px 16px;border-radius:10px;font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;margin-left:6px}
 .btn-wechat:active{transform:scale(0.96);opacity:0.85}
 
 /* ===== 날짜 구분바 ===== */
@@ -118,21 +120,19 @@ body{font-family:'Pretendard',-apple-system,BlinkMacSystemFont,'SF Pro Display',
 <div class="header">
   <div class="header-top">
     <h1 id="headerTitle">AOPI.有米家</h1>
-    <div style="display:flex;align-items:center;gap:6px">
-      <div class="badge-count" id="badgeCount"></div>
-      <button onclick="location.reload()" style="background:none;border:none;font-size:16px;cursor:pointer;padding:2px;line-height:1" title="새로고침">🔄</button>
+    <div style="display:flex;align-items:center;gap:8px">
+      <div class="exchange-chip">
+        ¥1 = <input class="rate-input" id="rateInput" type="number" inputmode="decimal" value="190" onchange="onRateChange()" onfocus="this.select()"> 원
+      </div>
+      <button onclick="location.reload()" style="background:none;border:none;font-size:18px;cursor:pointer;padding:0;line-height:1" title="새로고침">🔄</button>
     </div>
-  </div>
-  <div class="rate-bar">
-    <label>환율 ¥1 =</label>
-    <input class="rate-input" id="rateInput" type="number" inputmode="decimal" value="190" onchange="onRateChange()" onfocus="this.select()">
-    <span>원</span>
   </div>
   <div class="client-bar" id="clientBar" style="display:none">
     <label>거래처</label>
     <select class="header-client-select" id="headerClientSelect">
       <option value="">선택</option>
     </select>
+    <button onclick="openAOPIGroup()" style="flex-shrink:0;padding:6px 10px;border:none;border-radius:8px;background:var(--accent);color:#fff;font-size:12px;font-weight:700;font-family:inherit;cursor:pointer">단체방</button>
   </div>
 </div>
 
@@ -1485,6 +1485,7 @@ const PRODUCTS = [
 ];
 
 const CLIENTS = [{name:'신월동',wx:''},{name:'잠실',wx:''},{name:'위례',wx:''},{name:'성남',wx:''},{name:'용산',wx:''},{name:'신림',wx:''},{name:'청라',wx:''},{name:'면목',wx:''},{name:'연신내',wx:''}];
+const AOPI_GROUP_LINK = ''; // WeChat 단체방 링크 (weixin:// 또는 https://u.wechat.com/...)
 
 // ===== 상태 =====
 let currentTab = 'sample';
@@ -1571,7 +1572,7 @@ function switchTab(tab) {
 function updateBadges() {
   const sampleCount = getSampleProducts().length;
   const totalCount = PRODUCTS.length;
-  document.getElementById('badgeCount').textContent = sampleCount + '/' + totalCount;
+  // badgeCount removed
 
   const orderCount = getOrderProducts().length;
   const badge = document.getElementById('orderBadge');
@@ -1633,6 +1634,60 @@ function renderSample() {
   el.innerHTML = html;
 }
 
+// ===== 색상/사이즈 자동 파싱 =====
+function parseSizesAndColors(s, title) {
+  const CN_COLOR = {
+    '黑色':'블랙','白色':'화이트','粉色':'핑크','蓝色':'블루','绿色':'그린',
+    '红色':'레드','灰色':'그레이','棕色':'브라운','咖色':'브라운','杏色':'살구',
+    '卡其':'카키','黄色':'옐로우','紫色':'퍼플','橙色':'오렌지','米色':'베이지',
+    '奶白':'크림','米白':'아이보리','薄荷':'민트','深蓝':'네이비','藏蓝':'네이비',
+    '浅蓝':'스카이블루','浅粉':'연핑크','深绿':'딥그린','酒红':'와인레드'
+  };
+  const KO_COLORS = ['블랙','화이트','핑크','블루','그린','레드','그레이','브라운',
+    '베이지','카키','옐로우','퍼플','오렌지','네이비','크림','아이보리','민트'];
+
+  const formats = s ? s.split('/').filter(Boolean) : [];
+
+  if (formats.length === 0) {
+    // 타이틀에서 한국어 컬러 감지
+    const koColors = KO_COLORS.filter(c => title.includes(c));
+    return { colors: koColors, sizes: [] };
+  }
+
+  // formats에서 중국어 컬러 감지
+  let foundCN = [];
+  for (const [cn] of Object.entries(CN_COLOR)) {
+    if (formats.some(f => f.includes(cn))) foundCN.push(cn);
+  }
+
+  if (foundCN.length > 0) {
+    const colorSet = new Set();
+    const sizeSet = new Set();
+    formats.forEach(f => {
+      let rem = f;
+      for (const cn of foundCN) {
+        if (f.includes(cn)) {
+          colorSet.add(CN_COLOR[cn]);
+          rem = f.replace(cn, '').trim();
+          break;
+        }
+      }
+      if (rem) sizeSet.add(rem);
+    });
+    const colors = [...colorSet];
+    const sizes = [...sizeSet].filter(x => x.length > 0);
+    return { colors, sizes };
+  }
+
+  // 순수 사이즈만 있는 경우 (S/M/L 등)
+  // 균码 처리
+  const cleaned = formats.map(f => {
+    if (f === '均码' || f === '均') return 'F';
+    return f;
+  });
+  return { colors: [], sizes: cleaned };
+}
+
 // ===== 발주 페이지 렌더 =====
 function renderOrder() {
   const r = getRate();
@@ -1654,19 +1709,16 @@ function renderOrder() {
   let html = '';
   items.forEach((p) => {
     const pidx = PRODUCTS.indexOf(p);
-    const sizes = p.s ? p.s.split('/').filter(Boolean) : [];
-    const displaySizes = sizes.length > 0 ? sizes : ['S','M','L'];
+    const { colors: parsedColors, sizes: parsedSizes } = parseSizesAndColors(p.s, p.t);
+    const displaySizes = parsedSizes.length > 0 ? parsedSizes : ['S','M','L'];
     const costKrw = Math.round(p.p * r);
     const ship = getShip(p.cat);
     const totalPerPcs = costKrw + ship;
     const catLabel = CAT_INFO[p.cat]?.label || '기타';
     const colCount = displaySizes.length;
 
-    // 색상 자동 감지
-    const colorKws = ['블랙','화이트','핑크','블루','그린','레드','그레이','브라운','베이지','카키','옐로우','퍼플','오렌지','네이비','크림','아이보리','민트'];
-    let detectedColors = [];
-    colorKws.forEach(c => { if (p.t.includes(c) && !detectedColors.includes(c)) detectedColors.push(c); });
-    if (detectedColors.length === 0) detectedColors = ['기본'];
+    // 색상: formats 파싱 우선, 없으면 기본 1행
+    const detectedColors = parsedColors.length > 0 ? parsedColors : [''];
 
     // 사이즈 헤더 행
     let sizeGridHtml = '<div class="size-header"></div>';
@@ -1687,7 +1739,7 @@ function renderOrder() {
         <img src="${p.i}?imageMogr2/auto-orient/thumbnail/!400x400r/quality/75/format/jpg"
              loading="lazy" onerror="this.style.display='none'">
         <span class="product-badge">#${p.code}</span>
-        <div class="qty-badge" id="qtyBadge_${p.code}">0</div>
+        <div class="qty-badge" id="qtyBadge_${p.code}" style="display:none">0</div>
       </div>
       <div class="product-info">
         <div class="product-category">
@@ -1702,7 +1754,6 @@ function renderOrder() {
              style="grid-template-columns:auto repeat(${Math.max(colCount,3)},1fr)">
           ${sizeGridHtml}
         </div>
-        <button class="btn-add-color-new" onclick="addColorRowGrid('${p.code}')">+ 색상 추가</button>
       </div>
     </div>`;
   });
@@ -1750,7 +1801,10 @@ function updateSubtotal(code) {
   if (!card) return;
   const total = Array.from(card.querySelectorAll('.qty-input')).reduce((s,i) => s+(parseInt(i.value)||0), 0);
   const badge = document.getElementById('qtyBadge_' + code);
-  if (badge) badge.textContent = total;
+  if (badge) {
+    badge.textContent = total;
+    badge.style.display = total > 0 ? 'flex' : 'none';
+  }
 }
 
 
@@ -1845,6 +1899,16 @@ function updateTotal() {
   if (amtEl) amtEl.textContent = '₩' + fmtKrw(totalKrw);
 }
 
+
+// ===== AOPI 단체방 바로가기 =====
+function openAOPIGroup() {
+  if (AOPI_GROUP_LINK) {
+    window.location.href = AOPI_GROUP_LINK;
+  } else {
+    window.location.href = 'weixin://';
+    showToast('위챗 앱을 열었습니다\n소熊家 단체방에 직접 이동하세요');
+  }
+}
 
 // ===== 위챗 원클릭 발주 =====
 async function sendToWeChat() {
