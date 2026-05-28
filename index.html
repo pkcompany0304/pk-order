@@ -1948,8 +1948,7 @@ function buildOrderMsg() {
 
   const today = new Date();
   const dateStr = `${today.getMonth()+1}월 ${today.getDate()}일`;
-  let msg = dateStr + '\n';
-  if (clientName) msg += clientName + '\n';
+  let msg = clientName ? `${dateStr} ${clientName}\n` : `${dateStr}\n`;
 
   let grandQty = 0;
   for (const [code, data] of Object.entries(orders)) {
