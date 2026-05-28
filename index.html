@@ -3238,13 +3238,22 @@ function renderSample() {
   let html = '';
   let lastDate = null;
 
+  // 이미지 URL 업로드 날짜 기준 정렬 (최신순)
+  visible.sort((a, b) => {
+    const da = a.i.match(/\/(20\d{2})(0[1-9]|1[0-2])(0[1-9]|[12]\d|3[01])\//);
+    const db = b.i.match(/\/(20\d{2})(0[1-9]|1[0-2])(0[1-9]|[12]\d|3[01])\//);
+    const sa = da ? da[1]+da[2]+da[3] : a.d.replace('/','');
+    const sb = db ? db[1]+db[2]+db[3] : b.d.replace('/','');
+    return sb.localeCompare(sa);
+  });
+
   visible.forEach((p) => {
     const costKrw = Math.round(p.p * r);
     const ship = getShip(p.cat);
     const totalKrw = costKrw + ship;
 
     // 이미지 URL에서 업로드 날짜 추출 (예: /20260527/ → 05.27)
-    const dm = p.i.match(/\/(\d{4})(\d{2})(\d{2})\//);
+    const dm = p.i.match(/\/(20\d{2})(0[1-9]|1[0-2])(0[1-9]|[12]\d|3[01])\//);
     const uploadDate = dm ? dm[2]+'.'+dm[3] : p.d;
     if (uploadDate !== lastDate) {
       html += `<div class="date-divider">${uploadDate} 업로드</div>`;
