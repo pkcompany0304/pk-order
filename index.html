@@ -1903,10 +1903,9 @@ function updateTotal() {
 // ===== AOPI 단체방 바로가기 =====
 function openAOPIGroup() {
   if (AOPI_GROUP_LINK) {
-    window.location.href = AOPI_GROUP_LINK;
+    window.open(AOPI_GROUP_LINK, '_blank');
   } else {
-    window.location.href = 'weixin://';
-    showToast('위챗 앱을 열었습니다\n소熊家 단체방에 직접 이동하세요');
+    window.open('weixin://', '_blank');
   }
 }
 
