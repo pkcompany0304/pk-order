@@ -44,7 +44,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Apple SD Got
 .btn-delete:active{opacity:.7;transform:scale(.97)}
 
 /* ===== 발주 그리드 (2열) ===== */
-.order-grid-wrap{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:12px}
+.order-grid-wrap{display:flex;flex-direction:column;gap:12px;padding:12px}
 .order-card{background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.06)}
 .order-card-img{width:100%;aspect-ratio:1;object-fit:cover;display:block}
 .order-card-body{padding:10px}
@@ -134,8 +134,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Apple SD Got
 
 <!-- 하단 발주바 (발주 페이지) -->
 <div class="order-bottom-bar" id="orderBottomBar">
-  <div class="order-summary">총 <span id="totalQty">0</span>장</div>
-  <button class="btn-order" onclick="generateOrder()">발주 메시지 복사</button>
+  <div class="order-summary">총 <span id="totalQty">0</span>장 &nbsp;<span id="totalAmount" style="color:#007aff"></span></div>
+  <button class="btn-order" onclick="generateOrder()">발주서 복사</button>
 </div>
 
 <!-- 하단 탭바 -->
@@ -1617,62 +1617,61 @@ function renderOrder() {
   updateBadges();
 
   if (items.length === 0) {
-    el.innerHTML = '<div class="empty-state"><div class="empty-icon">📋</div><div class="empty-text">발주 상품이 없습니다</div><div class="empty-sub">샘플 페이지에서 "사입 복사"를 눌러 추가하세요</div></div>';
+    el.innerHTML = '<div class="empty-state"><div class="empty-icon">📋</div><div class="empty-text">발주 상품이 없습니다</div><div class="empty-sub">샘플 탭에서 "사입 복사"를 누르면 여기에 추가됩니다</div></div>';
     updateTotal();
     return;
   }
 
   let html = '';
   items.forEach((p) => {
-    const idx = PRODUCTS.indexOf(p);
-    const sizes = p.s.split('/').filter(Boolean);
+    const pidx = PRODUCTS.indexOf(p);
+    const sizes = p.s ? p.s.split('/').filter(Boolean) : [];
+    const displaySizes = sizes.length > 0 ? sizes : ['S','M','L','XL'];
     const costKrw = Math.round(p.p * r);
     const ship = getShip(p.cat);
-    const totalKrw = costKrw + ship;
+    const totalPerPcs = costKrw + ship;
 
     const catOptions = CAT_KEYS.map(k =>
       `<option value="${k}"${k===p.cat?' selected':''}>${CAT_INFO[k].label} ₩${CAT_INFO[k].ship.toLocaleString()}</option>`
     ).join('');
 
-    // 색상 추출: 제목에서 색상 키워드 파싱
-    const colorMap = {'黑':'블랙','白':'화이트','粉':'핑크','蓝':'블루','绿':'그린','红':'레드','灰':'그레이','咖':'브라운','杏':'베이지','卡其':'카키','咖啡':'브라운','黑色':'블랙','白色':'화이트','粉色':'핑크','蓝色':'블루','黑/':'블랙','白/':'화이트','블랙':'블랙','화이트':'화이트','핑크':'핑크','블루':'블루','브라운':'브라운','베이지':'베이지','카키':'카키','그레이':'그레이'};
-    let colors = [];
-    const colorMatch = p.t.match(/(블랙|화이트|핑크|블루|브라운|베이지|카키|그레이|黑|白|粉|蓝|绿|红|灰|咖|杏|卡其|咖啡)/g);
-    if (colorMatch) {
-      const seen = new Set();
-      colorMatch.forEach(c => {
-        const kr = colorMap[c] || c;
-        if (!seen.has(kr)) { seen.add(kr); colors.push(kr); }
-      });
-    }
-    if (colors.length === 0) colors = ['기본'];
+    // 색상 자동 감지
+    const colorKws = ['블랙','화이트','핑크','블루','그린','레드','그레이','브라운','베이지','카키','옐로우','퍼플','오렌지','네이비','크림','아이보리','민트'];
+    let detectedColors = [];
+    colorKws.forEach(c => { if (p.t.includes(c) && !detectedColors.includes(c)) detectedColors.push(c); });
+    if (detectedColors.length === 0) detectedColors = [''];
 
-    let colorSizeInputs = '';
-    colors.forEach(color => {
-      colorSizeInputs += `<div class="color-label">${color}</div>`;
-      colorSizeInputs += `<div class="size-input-row">`;
-      if (sizes.length > 0) {
-        sizes.forEach(sz => {
-          colorSizeInputs += `<div class="size-cell"><label>${sz}</label><input type="number" inputmode="numeric" min="0" placeholder="0" data-code="${p.code}" data-size="${sz}" data-color="${color}" oninput="updateTotal()"></div>`;
-        });
-      } else {
-        colorSizeInputs += `<div class="size-cell"><label>수량</label><input type="number" inputmode="numeric" min="0" placeholder="0" data-code="${p.code}" data-size="F" data-color="${color}" oninput="updateTotal()"></div>`;
-      }
-      colorSizeInputs += `</div>`;
-    });
+    // 사이즈 헤더
+    const sizeHeaders = displaySizes.map(sz => `<th>${sz}</th>`).join('');
+
+    // 색상 행
+    const colorRows = detectedColors.map(color => makeColorRow(p.code, displaySizes, color)).join('');
 
     html += `
     <div class="order-card" data-code="${p.code}">
-      <img class="order-card-img" src="${p.i}?imageMogr2/auto-orient/thumbnail/!400x400r/quality/75/format/jpg" alt="${p.code}" loading="lazy">
-      <div class="order-card-body">
-        <div class="order-card-header">
-          <div>
-            <div class="order-card-name">${p.t}</div>
-            <div class="order-card-price">₩${fmtKrw(totalKrw)} <select class="cat-select" onchange="onCatChange(${idx},this.value)">${catOptions}</select></div>
+      <div class="order-card-top">
+        <img class="order-card-img-sm" src="${p.i}?imageMogr2/auto-orient/thumbnail/!200x200r/quality/75/format/jpg" loading="lazy">
+        <div class="order-card-info">
+          <div class="order-card-code">#${p.code}</div>
+          <div class="order-card-name">${p.t.replace(/^\d+#💰[\d.]+¥\s*/,'').replace(/^\d+#[^¥]*¥\s*/,'') || p.t}</div>
+          <div class="order-card-price-row">
+            <span class="order-card-cny">¥${p.p}</span>
+            <span class="order-card-krw">₩${fmtKrw(totalPerPcs)}</span>
+            <span style="font-size:10px;color:#aeaeb2">(운임포함)</span>
           </div>
-          <button class="order-card-remove" onclick="removeFromOrder('${p.code}')">✕</button>
+          <div class="order-card-meta">
+            <select class="cat-select" style="font-size:11px;padding:3px 6px;border:1px solid #e5e5ea;border-radius:6px;background:#fff" onchange="onCatChange(${pidx},this.value)">${catOptions}</select>
+            <span class="order-subtotal-tag" id="subtotal_${p.code}">0장</span>
+          </div>
         </div>
-        <div class="color-size-section">${colorSizeInputs}</div>
+        <button class="order-card-remove" onclick="removeFromOrder('${p.code}')">✕</button>
+      </div>
+      <div class="order-table-wrap">
+        <table class="order-table">
+          <thead><tr><th>색상</th>${sizeHeaders}<th>소계</th><th></th></tr></thead>
+          <tbody id="tbody_${p.code}">${colorRows}</tbody>
+        </table>
+        <button class="btn-add-color" onclick="addColorRow('${p.code}')">+ 색상 추가</button>
       </div>
     </div>`;
   });
@@ -1680,6 +1679,66 @@ function renderOrder() {
   el.innerHTML = html;
   updateTotal();
 }
+
+function makeColorRow(code, sizes, colorName) {
+  const sizeInputs = sizes.map(sz =>
+    `<td><input type="number" class="qty-input" inputmode="numeric" min="0" placeholder="0"
+      data-code="${code}" data-size="${sz}" oninput="onQtyInput(this)"></td>`
+  ).join('');
+  return `<tr class="color-row">
+    <td><input type="text" class="color-name-input" placeholder="색상" value="${colorName}"></td>
+    ${sizeInputs}
+    <td class="row-sub">0</td>
+    <td><button class="btn-del-row" onclick="removeColorRow(this)">−</button></td>
+  </tr>`;
+}
+
+function addColorRow(code) {
+  const tbody = document.getElementById('tbody_' + code);
+  if (!tbody) return;
+  const firstRow = tbody.querySelector('tr');
+  const sizes = firstRow ? firstRow.querySelectorAll('.qty-input').length : 4;
+  const sizeNames = firstRow
+    ? Array.from(firstRow.querySelectorAll('.qty-input')).map(i => i.dataset.size)
+    : ['S','M','L','XL'];
+  const newRow = document.createElement('tr');
+  newRow.className = 'color-row';
+  let html = `<td><input type="text" class="color-name-input" placeholder="색상" value=""></td>`;
+  sizeNames.forEach(sz => {
+    html += `<td><input type="number" class="qty-input" inputmode="numeric" min="0" placeholder="0" data-code="${code}" data-size="${sz}" oninput="onQtyInput(this)"></td>`;
+  });
+  html += `<td class="row-sub">0</td><td><button class="btn-del-row" onclick="removeColorRow(this)">−</button></td>`;
+  newRow.innerHTML = html;
+  tbody.appendChild(newRow);
+}
+
+function removeColorRow(btn) {
+  const row = btn.closest('tr');
+  const tbody = row.closest('tbody');
+  if (tbody.querySelectorAll('tr').length <= 1) return; // 최소 1행 유지
+  const code = tbody.id.replace('tbody_','');
+  row.remove();
+  updateSubtotal(code);
+  updateTotal();
+}
+
+function onQtyInput(inp) {
+  const row = inp.closest('tr');
+  const rowTotal = Array.from(row.querySelectorAll('.qty-input')).reduce((s,i) => s+(parseInt(i.value)||0), 0);
+  const rowSub = row.querySelector('.row-sub');
+  if (rowSub) rowSub.textContent = rowTotal + '장';
+  updateSubtotal(inp.dataset.code);
+  updateTotal();
+}
+
+function updateSubtotal(code) {
+  const tbody = document.getElementById('tbody_' + code);
+  if (!tbody) return;
+  const total = Array.from(tbody.querySelectorAll('.qty-input')).reduce((s,i) => s+(parseInt(i.value)||0), 0);
+  const tag = document.getElementById('subtotal_' + code);
+  if (tag) tag.textContent = total + '장';
+}
+
 
 // ===== 사입 복사 (샘플 → 발주 이동) =====
 function sampleOrder(code) {
@@ -1752,50 +1811,79 @@ function onRateChange() {
 
 // ===== 수량 합계 =====
 function updateTotal() {
-  let total = 0;
-  document.querySelectorAll('#orderList input[type="number"]').forEach(inp => {
-    total += parseInt(inp.value) || 0;
+  let totalQty = 0;
+  let totalKrw = 0;
+  const r = getRate();
+  document.querySelectorAll('.order-card').forEach(card => {
+    const code = card.dataset.code;
+    const p = PRODUCTS.find(pr => pr.code === code);
+    if (!p) return;
+    const ship = getShip(p.cat);
+    const unitKrw = Math.round(p.p * r) + ship;
+    card.querySelectorAll('.qty-input').forEach(inp => {
+      const qty = parseInt(inp.value) || 0;
+      totalQty += qty;
+      totalKrw += qty * unitKrw;
+    });
   });
-  document.getElementById('totalQty').textContent = total;
+  document.getElementById('totalQty').textContent = totalQty;
+  const amtEl = document.getElementById('totalAmount');
+  if (amtEl) amtEl.textContent = '₩' + fmtKrw(totalKrw);
 }
 
 // ===== 발주 메시지 생성 =====
 function generateOrder() {
   const clientName = document.getElementById('headerClientSelect').value || '';
+  const r = getRate();
   const orders = {};
 
   document.querySelectorAll('.order-card').forEach(card => {
     const code = card.dataset.code;
     const p = PRODUCTS.find(pr => pr.code === code);
     if (!p) return;
-    card.querySelectorAll('input[type="number"]').forEach(inp => {
-      const qty = parseInt(inp.value) || 0;
-      if (qty > 0) {
-        const sz = inp.dataset.size;
-        const color = inp.dataset.color || '기본';
-        if (!orders[p.code]) orders[p.code] = {title:p.t, price:p.p, items:[]};
-        orders[p.code].items.push({sz, color, qty});
-      }
+    const tbody = document.getElementById('tbody_' + code);
+    if (!tbody) return;
+
+    tbody.querySelectorAll('.color-row').forEach(row => {
+      const colorName = (row.querySelector('.color-name-input')?.value || '').trim() || '기본';
+      row.querySelectorAll('.qty-input').forEach(inp => {
+        const qty = parseInt(inp.value) || 0;
+        if (qty > 0) {
+          const sz = inp.dataset.size;
+          if (!orders[code]) orders[code] = {title:p.t, price:p.p, items:[], p};
+          orders[code].items.push({sz, color:colorName, qty});
+        }
+      });
     });
   });
 
   if (!Object.keys(orders).length) { showToast('수량을 입력해주세요'); return; }
 
-  let msg = clientName ? `【订单】${clientName}\n` : '【订单】\n';
-  let grandTotal = 0;
+  const rateVal = getRate();
+  let msg = clientName ? `【발주서】${clientName}\n` : '【발주서】\n';
+  msg += `─────────────\n`;
+  let grandQty = 0;
+  let grandKrw = 0;
   for (const [code, data] of Object.entries(orders)) {
     let sub = 0;
     const parts = [];
     data.items.forEach(({sz, color, qty}) => {
       sub += qty;
-      parts.push(color !== '기본' ? `${color}${sz}-${qty}` : `${sz}-${qty}`);
+      const label = color !== '기본' ? `${color} ${sz}` : sz;
+      parts.push(`${label}-${qty}`);
     });
-    grandTotal += sub;
-    msg += `${code}: ${parts.join(' ')} (${sub}件)\n`;
+    grandQty += sub;
+    const ship = getShip(data.p.cat);
+    const unitKrw = Math.round(data.p.p * rateVal) + ship;
+    const subtotalKrw = unitKrw * sub;
+    grandKrw += subtotalKrw;
+    msg += `${code} (${sub}장) ₩${fmtKrw(subtotalKrw)}\n`;
+    msg += `  ${parts.join(' / ')}\n`;
   }
-  msg += `共${grandTotal}件`;
+  msg += `─────────────\n`;
+  msg += `총 ${grandQty}장  합계 ₩${fmtKrw(grandKrw)}`;
   copyText(msg);
-  showToast(`발주 복사 완료!\n${grandTotal}장`);
+  showToast(`발주 복사 완료!\n${grandQty}장 / ₩${fmtKrw(grandKrw)}`);
 }
 
 // ===== 클립보드 =====
