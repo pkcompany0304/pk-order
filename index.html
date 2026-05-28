@@ -3238,12 +3238,17 @@ function renderSample() {
   let html = '';
   let lastDate = null;
 
-  // 이미지 URL 업로드 날짜 기준 정렬 (최신순)
+  // 실제 업로드일(d 필드) 기준 최신순 정렬
   visible.sort((a, b) => {
-    const da = a.i.match(/\/(20\d{2})(0[1-9]|1[0-2])(0[1-9]|[12]\d|3[01])\//);
-    const db = b.i.match(/\/(20\d{2})(0[1-9]|1[0-2])(0[1-9]|[12]\d|3[01])\//);
-    const sa = da ? da[1]+da[2]+da[3] : a.d.replace('/','');
-    const sb = db ? db[1]+db[2]+db[3] : b.d.replace('/','');
+    // d 필드: "MM/DD" 형식 → 1순위 정렬
+    const toNum = d => d ? parseInt(d.replace('/', '')) : 0;
+    const diff = toNum(b.d) - toNum(a.d);
+    if (diff !== 0) return diff;
+    // 동일 날짜면 이미지 URL 날짜로 2순위 정렬
+    const reDt = /\/(20\d{2})(0[1-9]|1[0-2])(0[1-9]|[12]\d|3[01])\//;
+    const da = a.i.match(reDt), db = b.i.match(reDt);
+    const sa = da ? da[1]+da[2]+da[3] : '20000101';
+    const sb = db ? db[1]+db[2]+db[3] : '20000101';
     return sb.localeCompare(sa);
   });
 
@@ -3252,9 +3257,11 @@ function renderSample() {
     const ship = getShip(p.cat);
     const totalKrw = costKrw + ship;
 
-    // 이미지 URL에서 업로드 날짜 추출 (예: /20260527/ → 05.27)
-    const dm = p.i.match(/\/(20\d{2})(0[1-9]|1[0-2])(0[1-9]|[12]\d|3[01])\//);
-    const uploadDate = dm ? dm[2]+'.'+dm[3] : p.d;
+    // 업로드 날짜: d 필드(MM/DD) 우선, 없으면 이미지 URL에서 추출
+    const uploadDate = p.d ? p.d.replace('/', '.') : (() => {
+      const dm = p.i.match(/\/(20\d{2})(0[1-9]|1[0-2])(0[1-9]|[12]\d|3[01])\//);
+      return dm ? dm[2]+'.'+dm[3] : '??';
+    })();
     if (uploadDate !== lastDate) {
       html += `<div class="date-divider">${uploadDate} 업로드</div>`;
       lastDate = uploadDate;
