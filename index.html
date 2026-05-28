@@ -3222,12 +3222,7 @@ function updateBadges() {
 function renderSample() {
   const r = getRate();
   const el = document.getElementById('sampleGrid');
-  const visible = getSampleProducts().sort((a, b) => {
-    // 이미지 URL에서 날짜 추출, 최신(큰 숫자)이 먼저
-    const da = (a.i.match(/\/(\d{8})\//) || ['','0'])[1];
-    const db = (b.i.match(/\/(\d{8})\//) || ['','0'])[1];
-    return db.localeCompare(da);
-  });
+  const visible = getSampleProducts();
   updateBadges();
 
   if (visible.length === 0) {
