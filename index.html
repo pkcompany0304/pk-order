@@ -135,7 +135,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Apple SD Got
 <!-- 하단 발주바 (발주 페이지) -->
 <div class="order-bottom-bar" id="orderBottomBar">
   <div class="order-summary">총 <span id="totalQty">0</span>장 &nbsp;<span id="totalAmount" style="color:#007aff"></span></div>
-  <button class="btn-order" onclick="generateOrder()">발주서 복사</button>
+  <div style="display:flex;gap:8px">
+    <button class="btn-order" style="background:#f2f2f7;color:#1c1c1e;flex:1" onclick="generateOrder()">복사</button>
+    <button class="btn-order" style="background:#07c160;flex:2" onclick="sendToWeChat()">💬 위챗으로 보내기</button>
+  </div>
 </div>
 
 <!-- 하단 탭바 -->
@@ -1504,10 +1507,10 @@ async function fetchExchangeRate() {
 // ===== 거래처 select 초기화 =====
 function initClientSelect() {
   const sel = document.getElementById('headerClientSelect');
-  CLIENTS.forEach(c => {
+  CLIENTS.forEach((c, i) => {
     const opt = document.createElement('option');
-    opt.value = c;
-    opt.textContent = c;
+    opt.value = i;
+    opt.textContent = c.name;
     sel.appendChild(opt);
   });
 }
@@ -1831,9 +1834,98 @@ function updateTotal() {
   if (amtEl) amtEl.textContent = '₩' + fmtKrw(totalKrw);
 }
 
+
+// ===== 위챗 원클릭 발주 =====
+async function sendToWeChat() {
+  const clientIdx = document.getElementById('headerClientSelect').value;
+  const clientObj = clientIdx !== '' ? CLIENTS[parseInt(clientIdx)] : null;
+
+  if (!clientObj) { showToast('거래처를 먼저 선택해주세요'); return; }
+
+  // 발주서 생성 (generateOrder와 동일 로직, 복사 없이 텍스트만 반환)
+  const msg = buildOrderMsg();
+  if (!msg) return;
+
+  // 클립보드 복사
+  await navigator.clipboard.writeText(msg).catch(() => {
+    const el = document.createElement('textarea');
+    el.value = msg; document.body.appendChild(el);
+    el.select(); document.execCommand('copy');
+    document.body.removeChild(el);
+  });
+
+  // 위챗 딥링크
+  if (clientObj.wx) {
+    window.location.href = `weixin://dl/chat?username=${clientObj.wx}`;
+    showToast('클립보드 복사 완료\n위챗 채팅창에서 붙여넣기 후 전송!');
+  } else {
+    // wx ID 없으면 위챗 앱만 열기
+    window.location.href = 'weixin://';
+    showToast(`클립보드 복사 완료\n${clientObj.name} 채팅창에 붙여넣기!`);
+  }
+}
+
+// 발주서 텍스트 생성 (공통)
+function buildOrderMsg() {
+  const clientIdx = document.getElementById('headerClientSelect').value;
+  const clientObj = clientIdx !== '' ? CLIENTS[parseInt(clientIdx)] : null;
+  const clientName = clientObj ? clientObj.name : '';
+  const r = getRate();
+  const orders = {};
+
+  document.querySelectorAll('.order-card').forEach(card => {
+    const code = card.dataset.code;
+    const p = PRODUCTS.find(pr => pr.code === code);
+    if (!p) return;
+    const tbody = document.getElementById('tbody_' + code);
+    if (!tbody) return;
+    tbody.querySelectorAll('.color-row').forEach(row => {
+      const colorName = (row.querySelector('.color-name-input')?.value || '').trim() || '기본';
+      row.querySelectorAll('.qty-input').forEach(inp => {
+        const qty = parseInt(inp.value) || 0;
+        if (qty > 0) {
+          const sz = inp.dataset.size;
+          if (!orders[code]) orders[code] = {title:p.t, price:p.p, items:[], p};
+          orders[code].items.push({sz, color:colorName, qty});
+        }
+      });
+    });
+  });
+
+  if (!Object.keys(orders).length) { showToast('수량을 입력해주세요'); return null; }
+
+  const today = new Date();
+  const dateStr = `${today.getFullYear()}.${String(today.getMonth()+1).padStart(2,'0')}.${String(today.getDate()).padStart(2,'0')}`;
+  let msg = `【발주서】${dateStr}\n`;
+  if (clientName) msg += `${clientName}\n`;
+  msg += `─────────────\n`;
+
+  let grandQty = 0, grandKrw = 0;
+  for (const [code, data] of Object.entries(orders)) {
+    let sub = 0;
+    const parts = [];
+    data.items.forEach(({sz, color, qty}) => {
+      sub += qty;
+      parts.push(color !== '기본' ? `${color} ${sz}-${qty}` : `${sz}-${qty}`);
+    });
+    grandQty += sub;
+    const ship = getShip(data.p.cat);
+    const unitKrw = Math.round(data.p.p * r) + ship;
+    grandKrw += unitKrw * sub;
+    msg += `${code} (${sub}장) ₩${fmtKrw(unitKrw * sub)}\n`;
+    msg += `  ${parts.join(' / ')}\n`;
+  }
+  msg += `─────────────\n`;
+  msg += `총 ${grandQty}장  합계 ₩${fmtKrw(grandKrw)}`;
+  return msg;
+}
+
 // ===== 발주 메시지 생성 =====
 function generateOrder() {
-  const clientName = document.getElementById('headerClientSelect').value || '';
+  const clientIdx = document.getElementById('headerClientSelect').value;
+  const clientObj = clientIdx !== '' ? CLIENTS[parseInt(clientIdx)] : null;
+  const clientName = clientObj ? clientObj.name : '';
+  const clientWx = clientObj ? clientObj.wx : '';
   const r = getRate();
   const orders = {};
 
