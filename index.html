@@ -6,75 +6,153 @@
 <title>PK 사입/발주</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-body{font-family:-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo',sans-serif;background:#f2f2f7;color:#1c1c1e;padding-bottom:70px}
-.header{position:sticky;top:0;z-index:100;background:#fff;padding:10px 12px;border-bottom:1px solid #e5e5ea}
-.header-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
-.header-top h1{font-size:15px;font-weight:700}
-.tab-bar{display:flex;gap:6px}
-.tab{padding:5px 12px;border-radius:16px;font-size:12px;font-weight:600;border:none;background:#e5e5ea;color:#3a3a3c;cursor:pointer}
-.tab.active{background:#007aff;color:#fff}
-.rate-bar{display:flex;align-items:center;gap:6px;font-size:13px}
+body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Apple SD Gothic Neo',sans-serif;background:#f2f2f7;color:#1c1c1e;padding-bottom:90px}
+
+/* ===== 헤더 ===== */
+.header{position:sticky;top:0;z-index:100;background:rgba(255,255,255,0.92);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);padding:12px 16px;border-bottom:1px solid #e5e5ea}
+.header-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.header-top h1{font-size:17px;font-weight:700;letter-spacing:-0.3px}
+.badge-count{background:#ff3b30;color:#fff;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600}
+.rate-bar{display:flex;align-items:center;gap:8px;font-size:13px;margin-bottom:8px}
 .rate-bar label{color:#636366;font-weight:500;white-space:nowrap}
-.rate-input{width:60px;padding:5px 8px;border:1.5px solid #e5e5ea;border-radius:8px;font-size:14px;font-weight:600;text-align:center;-webkit-appearance:none}
+.rate-input{width:64px;padding:6px 8px;border:1.5px solid #e5e5ea;border-radius:8px;font-size:14px;font-weight:600;text-align:center;-webkit-appearance:none;background:#fff}
 .rate-input:focus{border-color:#007aff;outline:none}
 .rate-bar span{color:#aeaeb2;font-size:12px}
-.grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:8px}
-.card{background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 1px 2px rgba(0,0,0,.06)}
-.card-img{width:100%;aspect-ratio:1;object-fit:cover;display:block}
-.card-body{padding:8px}
-.card-code{font-size:12px;font-weight:700;color:#1c1c1e;margin-bottom:2px}
-.card-name{font-size:10px;color:#8e8e93;line-height:1.3;margin-bottom:4px;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden}
-.price-block{margin-bottom:4px}
-.price-row{display:flex;align-items:baseline;gap:4px;flex-wrap:wrap}
-.price-total{font-size:15px;font-weight:700;color:#ff3b30}
-.price-detail{font-size:10px;color:#8e8e93;line-height:1.4}
-.price-detail b{color:#636366;font-weight:600}
-.cat-select{font-size:10px;padding:1px 3px;border:1px solid #d1d1d6;border-radius:3px;background:#f2f2f7;color:#636366;-webkit-appearance:none;font-weight:600;vertical-align:baseline}
-.sizes{display:flex;gap:3px;flex-wrap:wrap;margin-bottom:6px}
-.size-tag{font-size:10px;background:#f2f2f7;color:#636366;padding:2px 5px;border-radius:4px;font-weight:500}
-.date-tag{font-size:10px;color:#aeaeb2}
-.btn-sample{width:100%;padding:8px;border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;background:#34c759;color:#fff}
+/* 거래처 바 — 발주 페이지에서만 보임 */
+.client-bar{display:flex;align-items:center;gap:8px;font-size:13px;margin-top:8px}
+.client-bar label{color:#636366;font-weight:500;white-space:nowrap}
+.header-client-select{flex:1;padding:6px 10px;border:1.5px solid #e5e5ea;border-radius:8px;font-size:13px;font-weight:600;-webkit-appearance:none;background:#fff;color:#1c1c1e}
+.header-client-select:focus{border-color:#007aff;outline:none}
+
+/* ===== 페이지 컨테이너 ===== */
+.page{display:none}
+.page.active{display:block}
+
+/* ===== 샘플 그리드 ===== */
+.sample-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:12px}
+
+/* ===== 샘플 카드 ===== */
+.sample-card{background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+.sample-card-img{width:100%;aspect-ratio:3/4;object-fit:cover;object-position:center 20%;display:block}
+.sample-card-body{padding:12px}
+.sample-card-name{font-size:13px;font-weight:600;color:#1c1c1e;line-height:1.4;margin-bottom:6px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;word-break:keep-all}
+.sample-card-price{font-size:15px;font-weight:700;color:#ff3b30;letter-spacing:-0.3px;margin-bottom:10px}
+.sample-btn-row{display:flex;gap:6px}
+.btn-sample{flex:1;padding:10px;border:none;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;background:#34c759;color:#fff;transition:transform .1s}
 .btn-sample:active{opacity:.7;transform:scale(.97)}
-.order-section{display:none;margin-top:6px;padding-top:6px;border-top:1px solid #f2f2f7}
-.order-section.show{display:block}
-.order-row{display:flex;align-items:center;gap:4px;margin-bottom:4px}
-.order-row label{font-size:11px;color:#636366;width:30px;flex-shrink:0;text-align:center}
-.order-row input{flex:1;padding:6px;border:1.5px solid #e5e5ea;border-radius:6px;font-size:14px;text-align:center;-webkit-appearance:none}
-.order-row input:focus{border-color:#007aff;outline:none}
-.client-select{width:100%;padding:6px;border:1.5px solid #e5e5ea;border-radius:6px;font-size:12px;margin-bottom:6px;-webkit-appearance:none;background:#fff}
-.bottom-bar{position:fixed;bottom:0;left:0;right:0;background:#fff;padding:10px 12px;padding-bottom:max(10px,env(safe-area-inset-bottom));border-top:1px solid #e5e5ea;display:none;z-index:100}
-.bottom-bar.show{display:flex;gap:8px;align-items:center}
-.order-summary{flex:1;font-size:13px;font-weight:600}.order-summary span{color:#ff3b30}
-.btn-order{padding:10px 20px;border:none;border-radius:10px;font-size:14px;font-weight:600;background:#007aff;color:#fff;cursor:pointer;flex-shrink:0}
-.btn-order:active{opacity:.7}
-.toast{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(.8);background:rgba(0,0,0,.78);color:#fff;padding:12px 24px;border-radius:12px;font-size:14px;font-weight:600;opacity:0;transition:all .25s;pointer-events:none;z-index:200;text-align:center}
+.btn-delete{flex:0 0 42px;padding:10px;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;background:#ff3b30;color:#fff;line-height:1;transition:transform .1s}
+.btn-delete:active{opacity:.7;transform:scale(.97)}
+
+/* ===== 발주 그리드 (2열) ===== */
+.order-grid-wrap{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:12px}
+.order-card{background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+.order-card-img{width:100%;aspect-ratio:1;object-fit:cover;display:block}
+.order-card-body{padding:10px}
+.order-card-header{display:flex;justify-content:space-between;align-items:flex-start;gap:4px;margin-bottom:6px}
+.order-card-name{font-size:12px;font-weight:600;color:#1c1c1e;line-height:1.3;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden;flex:1}
+.order-card-price{font-size:14px;font-weight:700;color:#ff3b30;margin-bottom:4px}
+.cat-select{font-size:10px;padding:2px 4px;border:1px solid #d1d1d6;border-radius:4px;background:#f2f2f7;color:#636366;-webkit-appearance:none;font-weight:600}
+.order-card-remove{width:24px;height:24px;border:none;border-radius:12px;background:#ff3b3015;color:#ff3b30;font-size:12px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.order-card-remove:active{background:#ff3b3030}
+
+/* 색상+사이즈 입력 — 컴팩트 */
+.color-size-section{margin-top:6px}
+.color-label{font-size:10px;font-weight:700;color:#636366;background:#e5e5ea;padding:3px 8px;border-radius:4px;margin-bottom:4px}
+.size-input-row{display:flex;gap:4px;margin-bottom:6px}
+.size-cell{flex:1;display:flex;flex-direction:column;align-items:center;gap:1px}
+.size-cell label{font-size:10px;font-weight:600;color:#8e8e93}
+.size-cell input{width:100%;height:34px;padding:0;border:1.5px solid #d1d1d6;border-radius:6px;font-size:15px;font-weight:600;text-align:center;-webkit-appearance:none;background:#fff;color:#1c1c1e}
+.size-cell input:focus{border-color:#007aff;outline:none;box-shadow:0 0 0 2px rgba(0,122,255,.12)}
+
+/* ===== 하단 탭바 ===== */
+.tab-bar{position:fixed;bottom:0;left:0;right:0;background:rgba(255,255,255,0.92);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid #e5e5ea;display:flex;z-index:200;padding-bottom:env(safe-area-inset-bottom)}
+.tab{flex:1;padding:10px 0 6px;border:none;background:none;font-size:11px;font-weight:600;color:#8e8e93;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;position:relative}
+.tab.active{color:#007aff}
+.tab-icon{font-size:22px;line-height:1}
+.tab-badge{position:absolute;top:4px;right:50%;transform:translateX(calc(50% + 16px));background:#ff3b30;color:#fff;font-size:10px;font-weight:700;padding:1px 5px;border-radius:8px;min-width:16px;text-align:center;display:none}
+.tab-badge.show{display:block}
+
+/* ===== 하단 발주바 (발주 페이지) ===== */
+.order-bottom-bar{position:fixed;bottom:52px;left:0;right:0;background:rgba(255,255,255,0.95);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);padding:10px 16px;border-top:1px solid #e5e5ea;display:none;align-items:center;gap:10px;z-index:150}
+.order-bottom-bar.show{display:flex}
+.order-summary{flex:1;font-size:14px;font-weight:600;color:#1c1c1e}
+.order-summary span{color:#ff3b30;font-weight:700}
+.btn-order{padding:12px 24px;border:none;border-radius:12px;font-size:14px;font-weight:700;background:#007aff;color:#fff;cursor:pointer;flex-shrink:0;transition:transform .1s}
+.btn-order:active{opacity:.7;transform:scale(.97)}
+
+/* ===== 날짜 구분바 ===== */
+.date-divider{grid-column:1/-1;padding:8px 14px;background:#e5e5ea;font-size:11px;font-weight:700;color:#636366;text-align:center;border-radius:8px}
+
+/* ===== Undo ===== */
+.btn-undo{position:fixed;bottom:100px;left:50%;transform:translateX(-50%);padding:10px 24px;border:none;border-radius:22px;font-size:13px;font-weight:600;background:rgba(50,50,50,.85);color:#fff;cursor:pointer;z-index:180;display:none;backdrop-filter:blur(10px);box-shadow:0 4px 12px rgba(0,0,0,.15)}
+.btn-undo.show{display:block}
+
+/* ===== Toast ===== */
+.toast{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(.8);background:rgba(0,0,0,.78);color:#fff;padding:14px 28px;border-radius:14px;font-size:14px;font-weight:600;opacity:0;transition:all .25s;pointer-events:none;z-index:300;text-align:center;backdrop-filter:blur(10px)}
 .toast.show{opacity:1;transform:translate(-50%,-50%) scale(1)}
+
+/* ===== 빈 상태 ===== */
+.empty-state{text-align:center;padding:80px 20px;color:#aeaeb2}
+.empty-state .empty-icon{font-size:48px;margin-bottom:12px}
+.empty-state .empty-text{font-size:15px;font-weight:600;color:#8e8e93}
+.empty-state .empty-sub{font-size:13px;margin-top:6px;color:#aeaeb2}
 </style>
 </head>
 <body>
+
+<!-- 헤더 -->
 <div class="header">
   <div class="header-top">
-    <h1>AOPI.有米家</h1>
-    <div class="tab-bar">
-      <button class="tab active" onclick="setMode('sample')">사입</button>
-      <button class="tab" onclick="setMode('order')">발주</button>
-    </div>
+    <h1 id="headerTitle">AOPI.有米家</h1>
+    <div class="badge-count" id="badgeCount"></div>
   </div>
   <div class="rate-bar">
     <label>환율 ¥1 =</label>
     <input class="rate-input" id="rateInput" type="number" inputmode="decimal" value="190" onchange="onRateChange()" onfocus="this.select()">
     <span>원</span>
   </div>
+  <div class="client-bar" id="clientBar" style="display:none">
+    <label>거래처</label>
+    <select class="header-client-select" id="headerClientSelect">
+      <option value="">선택</option>
+    </select>
+  </div>
 </div>
 
-<div class="grid" id="cards"></div>
-<div class="bottom-bar" id="bottomBar">
+<!-- 샘플 페이지 -->
+<div class="page active" id="pageSample">
+  <div class="sample-grid" id="sampleGrid"></div>
+</div>
+
+<!-- 발주 페이지 -->
+<div class="page" id="pageOrder">
+  <div class="order-grid-wrap" id="orderList"></div>
+</div>
+
+<!-- 하단 발주바 (발주 페이지) -->
+<div class="order-bottom-bar" id="orderBottomBar">
   <div class="order-summary">총 <span id="totalQty">0</span>장</div>
   <button class="btn-order" onclick="generateOrder()">발주 메시지 복사</button>
 </div>
+
+<!-- 하단 탭바 -->
+<div class="tab-bar">
+  <button class="tab active" id="tabSample" onclick="switchTab('sample')">
+    <span class="tab-icon">🛍</span>
+    샘플
+  </button>
+  <button class="tab" id="tabOrder" onclick="switchTab('order')">
+    <span class="tab-icon">📋</span>
+    발주
+    <span class="tab-badge" id="orderBadge">0</span>
+  </button>
+</div>
+
+<button class="btn-undo" id="btnUndo" onclick="undoDelete()">되돌리기</button>
 <div class="toast" id="toast"></div>
 
 <script>
+// ===== 운임 카테고리 =====
 const CAT_INFO = {
   tee:    {label:'티/조끼', ship:2000},
   knit:   {label:'니트',    ship:2500},
@@ -85,7 +163,6 @@ const CAT_INFO = {
 };
 const CAT_KEYS = Object.keys(CAT_INFO);
 
-// cat: AI가 사진+상품명 기준 자동 분류한 값. 사용자가 변경 가능.
 // 마지막 업데이트: 2026-05-28 자동 크롤링 (2,956개 상품)
 const PRODUCTS = [
   {t:"72627#💰115¥ miu休闲长裤！",p:115,s:"",i:"https://xcimg.szwego.com/img/2de07de3/20260522/i1779430700868_2482_0_0.jpg",d:"05/28",code:"72627",cat:"tee"},
@@ -3047,129 +3124,336 @@ const PRODUCTS = [
 ];
 
 const CLIENTS = ['신월동','잠실','위례','성남','용산','신림','청라','면목','연신내'];
-let mode = 'sample';
 
+// ===== 상태 =====
+let currentTab = 'sample';
+let deletedCodes = JSON.parse(localStorage.getItem('pk_deleted') || '[]');
+let orderedCodes = JSON.parse(localStorage.getItem('pk_ordered') || '[]');
+let lastDeleted = null;
+let undoTimer = null;
+
+// ===== 환율 자동 업데이트 (여러 소스 시도) =====
+async function fetchExchangeRate() {
+  // 1차: exchangerate-api (무료, CORS 지원)
+  try {
+    const res = await fetch('https://open.er-api.com/v6/latest/CNY');
+    const data = await res.json();
+    if (data.rates && data.rates.KRW) {
+      const rate = Math.round(data.rates.KRW);
+      if (rate > 100 && rate < 400) {
+        document.getElementById('rateInput').value = rate;
+        onRateChange();
+        return;
+      }
+    }
+  } catch(e) {}
+  // 2차: frankfurter
+  try {
+    const res = await fetch('https://api.frankfurter.dev/v1/latest?base=CNY&symbols=KRW');
+    const data = await res.json();
+    if (data.rates && data.rates.KRW) {
+      const rate = Math.round(data.rates.KRW);
+      if (rate > 100 && rate < 400) {
+        document.getElementById('rateInput').value = rate;
+        onRateChange();
+        return;
+      }
+    }
+  } catch(e) {}
+  // 폴백
+  document.getElementById('rateInput').value = 190;
+}
+
+// ===== 거래처 select 초기화 =====
+function initClientSelect() {
+  const sel = document.getElementById('headerClientSelect');
+  CLIENTS.forEach(c => {
+    const opt = document.createElement('option');
+    opt.value = c;
+    opt.textContent = c;
+    sel.appendChild(opt);
+  });
+}
+
+// ===== 유틸리티 =====
 function getRate() { return parseFloat(document.getElementById('rateInput').value) || 190; }
-
 function getShip(cat) { return CAT_INFO[cat]?.ship || 2000; }
-
 function fmtKrw(val) {
   val = Math.round(val);
   return val >= 10000 ? (val/10000).toFixed(1)+'만' : val.toLocaleString();
 }
+function saveDeleted() { localStorage.setItem('pk_deleted', JSON.stringify(deletedCodes)); }
+function saveOrdered() { localStorage.setItem('pk_ordered', JSON.stringify(orderedCodes)); }
 
-function onRateChange() { render(); }
-
-function onCatChange(idx, val) {
-  PRODUCTS[idx].cat = val;
-  render();
+// ===== 필터링 =====
+function getSampleProducts() {
+  return PRODUCTS.filter(p => !deletedCodes.includes(p.code) && !orderedCodes.includes(p.code));
+}
+function getOrderProducts() {
+  return PRODUCTS.filter(p => orderedCodes.includes(p.code));
 }
 
-function setMode(m) {
-  mode = m;
-  document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', (i===0&&m==='sample')||(i===1&&m==='order')));
-  document.querySelectorAll('.order-section').forEach(el => el.classList.toggle('show', m==='order'));
-  document.getElementById('bottomBar').classList.toggle('show', m==='order');
-  if(m==='order') updateTotal();
+// ===== 탭 전환 =====
+function switchTab(tab) {
+  currentTab = tab;
+  document.getElementById('pageSample').classList.toggle('active', tab === 'sample');
+  document.getElementById('pageOrder').classList.toggle('active', tab === 'order');
+  document.getElementById('tabSample').classList.toggle('active', tab === 'sample');
+  document.getElementById('tabOrder').classList.toggle('active', tab === 'order');
+  document.getElementById('clientBar').style.display = tab === 'order' ? 'flex' : 'none';
+  document.getElementById('orderBottomBar').classList.toggle('show', tab === 'order');
+  if (tab === 'sample') renderSample();
+  else renderOrder();
 }
 
-function render() {
+// ===== 뱃지 업데이트 =====
+function updateBadges() {
+  const sampleCount = getSampleProducts().length;
+  const totalCount = PRODUCTS.length;
+  document.getElementById('badgeCount').textContent = sampleCount + '/' + totalCount;
+
+  const orderCount = getOrderProducts().length;
+  const badge = document.getElementById('orderBadge');
+  badge.textContent = orderCount;
+  badge.classList.toggle('show', orderCount > 0);
+}
+
+// ===== 샘플 페이지 렌더 =====
+function renderSample() {
   const r = getRate();
-  const el = document.getElementById('cards');
-  el.innerHTML = PRODUCTS.map((p,idx) => {
+  const el = document.getElementById('sampleGrid');
+  const visible = getSampleProducts().sort((a, b) => {
+    // 이미지 URL에서 날짜 추출, 최신(큰 숫자)이 먼저
+    const da = (a.i.match(/\/(\d{8})\//) || ['','0'])[1];
+    const db = (b.i.match(/\/(\d{8})\//) || ['','0'])[1];
+    return db.localeCompare(da);
+  });
+  updateBadges();
+
+  if (visible.length === 0) {
+    el.innerHTML = '<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">🛍</div><div class="empty-text">상품이 없습니다</div><div class="empty-sub">모든 상품이 발주/삭제되었습니다</div></div>';
+    return;
+  }
+
+  let html = '';
+  let lastDate = null;
+
+  visible.forEach((p) => {
+    const costKrw = Math.round(p.p * r);
+    const ship = getShip(p.cat);
+    const totalKrw = costKrw + ship;
+
+    // 이미지 URL에서 업로드 날짜 추출 (예: /20260527/ → 05.27)
+    const dm = p.i.match(/\/(\d{4})(\d{2})(\d{2})\//);
+    const uploadDate = dm ? dm[2]+'.'+dm[3] : p.d;
+    if (uploadDate !== lastDate) {
+      html += `<div class="date-divider">${uploadDate} 업로드</div>`;
+      lastDate = uploadDate;
+    }
+
+    html += `
+    <div class="sample-card">
+      <img class="sample-card-img" src="${p.i}?imageMogr2/auto-orient/thumbnail/!400x400r/quality/75/format/jpg" alt="${p.code}" loading="lazy">
+      <div class="sample-card-body">
+        <div class="sample-card-name">${p.t}</div>
+        <div class="sample-card-price">₩${fmtKrw(totalKrw)}</div>
+        <div class="sample-btn-row">
+          <button class="btn-sample" onclick="sampleOrder('${p.code}')">사입 복사</button>
+          <button class="btn-delete" onclick="deleteItem('${p.code}')">✕</button>
+        </div>
+      </div>
+    </div>`;
+  });
+
+  el.innerHTML = html;
+}
+
+// ===== 발주 페이지 렌더 =====
+function renderOrder() {
+  const r = getRate();
+  const el = document.getElementById('orderList');
+  const items = getOrderProducts();
+  updateBadges();
+
+  if (items.length === 0) {
+    el.innerHTML = '<div class="empty-state"><div class="empty-icon">📋</div><div class="empty-text">발주 상품이 없습니다</div><div class="empty-sub">샘플 페이지에서 "사입 복사"를 눌러 추가하세요</div></div>';
+    updateTotal();
+    return;
+  }
+
+  let html = '';
+  items.forEach((p) => {
+    const idx = PRODUCTS.indexOf(p);
     const sizes = p.s.split('/').filter(Boolean);
     const costKrw = Math.round(p.p * r);
     const ship = getShip(p.cat);
     const totalKrw = costKrw + ship;
-    const catLabel = CAT_INFO[p.cat]?.label || '?';
 
     const catOptions = CAT_KEYS.map(k =>
       `<option value="${k}"${k===p.cat?' selected':''}>${CAT_INFO[k].label} ₩${CAT_INFO[k].ship.toLocaleString()}</option>`
     ).join('');
 
-    const sizeInputs = sizes.map(sz =>
-      `<div class="order-row"><label>${sz}</label><input type="number" inputmode="numeric" pattern="[0-9]*" min="0" placeholder="0" data-idx="${idx}" data-size="${sz}" oninput="onQtyChange()"></div>`
-    ).join('');
+    // 색상 추출: 제목에서 색상 키워드 파싱
+    const colorMap = {'黑':'블랙','白':'화이트','粉':'핑크','蓝':'블루','绿':'그린','红':'레드','灰':'그레이','咖':'브라운','杏':'베이지','卡其':'카키','咖啡':'브라운','黑色':'블랙','白色':'화이트','粉色':'핑크','蓝色':'블루','黑/':'블랙','白/':'화이트','블랙':'블랙','화이트':'화이트','핑크':'핑크','블루':'블루','브라운':'브라운','베이지':'베이지','카키':'카키','그레이':'그레이'};
+    let colors = [];
+    const colorMatch = p.t.match(/(블랙|화이트|핑크|블루|브라운|베이지|카키|그레이|黑|白|粉|蓝|绿|红|灰|咖|杏|卡其|咖啡)/g);
+    if (colorMatch) {
+      const seen = new Set();
+      colorMatch.forEach(c => {
+        const kr = colorMap[c] || c;
+        if (!seen.has(kr)) { seen.add(kr); colors.push(kr); }
+      });
+    }
+    if (colors.length === 0) colors = ['기본'];
 
-    return `
-    <div class="card">
-      <img class="card-img" src="${p.i}?imageMogr2/auto-orient/thumbnail/!400x400r/quality/75/format/jpg" alt="${p.code}" loading="lazy">
-      <div class="card-body">
-        <div class="card-code">${p.code}</div>
-        <div class="card-name">${p.t}</div>
-        <div class="price-block">
-          <div class="price-row">
-            <span class="price-total">₩${fmtKrw(totalKrw)}</span>
+    let colorSizeInputs = '';
+    colors.forEach(color => {
+      colorSizeInputs += `<div class="color-label">${color}</div>`;
+      colorSizeInputs += `<div class="size-input-row">`;
+      sizes.forEach(sz => {
+        colorSizeInputs += `<div class="size-cell"><label>${sz}</label><input type="number" inputmode="numeric" min="0" placeholder="0" data-code="${p.code}" data-size="${sz}" data-color="${color}" oninput="updateTotal()"></div>`;
+      });
+      colorSizeInputs += `</div>`;
+    });
+
+    html += `
+    <div class="order-card" data-code="${p.code}">
+      <img class="order-card-img" src="${p.i}?imageMogr2/auto-orient/thumbnail/!400x400r/quality/75/format/jpg" alt="${p.code}" loading="lazy">
+      <div class="order-card-body">
+        <div class="order-card-header">
+          <div>
+            <div class="order-card-name">${p.t}</div>
+            <div class="order-card-price">₩${fmtKrw(totalKrw)} <select class="cat-select" onchange="onCatChange(${idx},this.value)">${catOptions}</select></div>
           </div>
-          <div class="price-detail">₩${fmtKrw(costKrw)} + <select class="cat-select" onchange="onCatChange(${idx},this.value)">${catOptions}</select></div>
+          <button class="order-card-remove" onclick="removeFromOrder('${p.code}')">✕</button>
         </div>
-        <div class="sizes">${sizes.map(s=>`<span class="size-tag">${s}</span>`).join('')} <span class="date-tag">${p.d}</span></div>
-        <button class="btn-sample" onclick="sampleOrder(${idx})">사입 메시지 복사</button>
-        <div class="order-section${mode==='order'?' show':''}">
-          <select class="client-select" data-idx="${idx}">
-            <option value="">거래처</option>
-            ${CLIENTS.map(c=>`<option value="${c}">${c}</option>`).join('')}
-          </select>
-          ${sizeInputs}
-        </div>
+        <div class="color-size-section">${colorSizeInputs}</div>
       </div>
     </div>`;
-  }).join('');
+  });
+
+  el.innerHTML = html;
+  updateTotal();
 }
 
-function sampleOrder(idx) {
-  const p = PRODUCTS[idx];
+// ===== 사입 복사 (샘플 → 발주 이동) =====
+function sampleOrder(code) {
+  const p = PRODUCTS.find(pr => pr.code === code);
+  if (!p) return;
   const sizes = p.s.split('/').filter(Boolean);
   let light = sizes.length >= 2 ? sizes[Math.floor(sizes.length/2)-1] : sizes[0];
   let dark = sizes.length >= 2 ? sizes[Math.floor(sizes.length/2)] : sizes[0];
   const msg = `拿样: ${p.code} ${p.t}\n浅色 ${light}-1  深色 ${dark}-1\n共2件  ¥${p.p}/件`;
   copyText(msg);
-  showToast('사입 메시지 복사!\n위챗에 붙여넣기');
+
+  // 발주 목록에 추가
+  if (!orderedCodes.includes(code)) {
+    orderedCodes.push(code);
+    saveOrdered();
+  }
+
+  renderSample();
+  updateBadges();
+  showToast('사입 복사 완료\n발주 페이지로 이동됨');
 }
 
-function onQtyChange() { updateTotal(); }
+// ===== 발주에서 제거 (샘플로 복귀) =====
+function removeFromOrder(code) {
+  orderedCodes = orderedCodes.filter(c => c !== code);
+  saveOrdered();
+  renderOrder();
+  updateBadges();
+  showToast('샘플로 복귀');
+}
 
+// ===== 삭제 =====
+function deleteItem(code) {
+  lastDeleted = code;
+  deletedCodes.push(code);
+  saveDeleted();
+  renderSample();
+  updateBadges();
+  const btn = document.getElementById('btnUndo');
+  btn.classList.add('show');
+  btn.textContent = '되돌리기 (' + code + ')';
+  if (undoTimer) clearTimeout(undoTimer);
+  undoTimer = setTimeout(() => { btn.classList.remove('show'); undoTimer = null; }, 5000);
+  showToast('삭제됨');
+}
+
+function undoDelete() {
+  if (!lastDeleted) return;
+  deletedCodes = deletedCodes.filter(c => c !== lastDeleted);
+  saveDeleted();
+  lastDeleted = null;
+  document.getElementById('btnUndo').classList.remove('show');
+  if (undoTimer) { clearTimeout(undoTimer); undoTimer = null; }
+  renderSample();
+  updateBadges();
+  showToast('복구됨');
+}
+
+// ===== 카테고리 변경 =====
+function onCatChange(idx, val) {
+  PRODUCTS[idx].cat = val;
+  renderOrder();
+}
+
+// ===== 환율 변경 =====
+function onRateChange() {
+  if (currentTab === 'sample') renderSample();
+  else renderOrder();
+}
+
+// ===== 수량 합계 =====
 function updateTotal() {
   let total = 0;
-  document.querySelectorAll('.order-section input[type="number"]').forEach(inp => {
+  document.querySelectorAll('#orderList input[type="number"]').forEach(inp => {
     total += parseInt(inp.value) || 0;
   });
   document.getElementById('totalQty').textContent = total;
 }
 
+// ===== 발주 메시지 생성 =====
 function generateOrder() {
+  const clientName = document.getElementById('headerClientSelect').value || '';
   const orders = {};
-  document.querySelectorAll('.card').forEach((card, idx) => {
-    const p = PRODUCTS[idx];
-    const client = card.querySelector('.client-select')?.value || '';
+
+  document.querySelectorAll('.order-card').forEach(card => {
+    const code = card.dataset.code;
+    const p = PRODUCTS.find(pr => pr.code === code);
+    if (!p) return;
     card.querySelectorAll('input[type="number"]').forEach(inp => {
       const qty = parseInt(inp.value) || 0;
       if (qty > 0) {
         const sz = inp.dataset.size;
-        if (!orders[p.code]) orders[p.code] = {title:p.t, price:p.p, sizes:{}, clients:{}};
-        orders[p.code].sizes[sz] = (orders[p.code].sizes[sz]||0) + qty;
-        if (client) {
-          if (!orders[p.code].clients[client]) orders[p.code].clients[client] = {};
-          orders[p.code].clients[client][sz] = (orders[p.code].clients[client][sz]||0) + qty;
-        }
+        const color = inp.dataset.color || '기본';
+        if (!orders[p.code]) orders[p.code] = {title:p.t, price:p.p, items:[]};
+        orders[p.code].items.push({sz, color, qty});
       }
     });
   });
+
   if (!Object.keys(orders).length) { showToast('수량을 입력해주세요'); return; }
 
-  let msg = '【订单】\n';
+  let msg = clientName ? `【订单】${clientName}\n` : '【订单】\n';
   let grandTotal = 0;
   for (const [code, data] of Object.entries(orders)) {
-    const sizeParts = Object.entries(data.sizes).map(([sz,qty])=>`${sz}-${qty}`);
-    const sub = Object.values(data.sizes).reduce((a,b)=>a+b,0);
+    let sub = 0;
+    const parts = [];
+    data.items.forEach(({sz, color, qty}) => {
+      sub += qty;
+      parts.push(color !== '기본' ? `${color}${sz}-${qty}` : `${sz}-${qty}`);
+    });
     grandTotal += sub;
-    msg += `${code}: ${sizeParts.join(' ')} (${sub}件)\n`;
+    msg += `${code}: ${parts.join(' ')} (${sub}件)\n`;
   }
   msg += `共${grandTotal}件`;
   copyText(msg);
   showToast(`발주 복사 완료!\n${grandTotal}장`);
 }
 
+// ===== 클립보드 =====
 function copyText(text) {
   if (navigator.clipboard?.writeText) navigator.clipboard.writeText(text).catch(()=>fallbackCopy(text));
   else fallbackCopy(text);
@@ -3178,12 +3462,18 @@ function fallbackCopy(text) {
   const ta=document.createElement('textarea');ta.value=text;ta.style.cssText='position:fixed;left:-9999px';
   document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);
 }
+
+// ===== Toast =====
 function showToast(msg) {
   const t=document.getElementById('toast');t.innerHTML=msg.replace(/\n/g,'<br>');
   t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1800);
 }
 
-render();
+// ===== 초기화 =====
+initClientSelect();
+fetchExchangeRate();
+renderSample();
+updateBadges();
 </script>
 </body>
 </html>
