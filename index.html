@@ -1903,9 +1903,15 @@ function updateTotal() {
 // ===== AOPI 단체방 바로가기 =====
 function openAOPIGroup() {
   if (AOPI_GROUP_LINK) {
-    window.open(AOPI_GROUP_LINK, '_blank');
+    // weixin.qq.com/g/{ticket} → 내부 딥링크로 그룹 채팅 직접 진입
+    const ticket = AOPI_GROUP_LINK.split('/g/')[1] || '';
+    if (ticket) {
+      window.location.href = `weixin://dl/groupmessage?ticket=${ticket}`;
+    } else {
+      window.open(AOPI_GROUP_LINK, '_blank');
+    }
   } else {
-    window.open('weixin://', '_blank');
+    window.location.href = 'weixin://';
   }
 }
 
