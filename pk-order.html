@@ -3666,11 +3666,32 @@ function showToast(msg) {
   t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1800);
 }
 
+// ===== 샤드 로딩 (v3 자동화: data/products-YYYY-MM-DD.json) =====
+async function loadShards() {
+  try {
+    const r = await fetch('data/manifest.json?' + Date.now());
+    if (!r.ok) return;
+    const manifest = await r.json();
+    const days = (manifest.days || []).slice().reverse();
+    const existingCodes = new Set(PRODUCTS.map(p => p.code));
+    for (const day of days) {
+      const sr = await fetch('data/products-' + day + '.json?' + Date.now());
+      if (!sr.ok) continue;
+      const shardItems = await sr.json();
+      const fresh = shardItems.filter(p => !existingCodes.has(p.code));
+      fresh.forEach(p => existingCodes.add(p.code));
+      PRODUCTS.unshift(...fresh);
+    }
+  } catch(e) { console.warn('shard load:', e.message); }
+}
+
 // ===== 초기화 =====
 initClientSelect();
 fetchExchangeRate();
-renderSample();
-updateBadges();
+loadShards().then(() => {
+  renderSample();
+  updateBadges();
+});
 </script>
 </body>
 </html>
