@@ -1,6 +1,8 @@
 {
-  "days": [],
-  "lastCrawlDate": "2026-05-29",
-  "lastCrawlCount": 188,
-  "total": 3133
+  "days": [
+    "2026-05-31"
+  ],
+  "lastCrawlDate": "2026-05-31",
+  "lastCrawlCount": 151,
+  "total": 3284
 }
