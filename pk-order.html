@@ -163,7 +163,7 @@ const CAT_INFO = {
 };
 const CAT_KEYS = Object.keys(CAT_INFO);
 
-// 마지막 업데이트: 05/28 자동 크롤링 (3144개 상품)
+// 마지막 업데이트: 2026-05-31 v3 shard-loader 적용
 const PRODUCTS = [
   {t:"#5240 【爆款】",p:89,s:"",imgs:["https://xcimg.szwego.com/img/92249001/20260528/i1779984206458_7217_0_0.jpg","https://xcimg.szwego.com/img/92249001/20260528/i1779984199532_791_0_0.jpg","https://xcimg.szwego.com/img/92249001/20260528/i1779984192587_3537_0_0.jpg"],i:"https://xcimg.szwego.com/img/92249001/20260528/i1779984206458_7217_0_0.jpg",d:"05/28",code:"5240",cat:"tee"},
   {t:"🛍️🛍️CHANE*💰105",p:105,s:"",imgs:["https://xcimg.szwego.com/img/15d7e607/20260520/i1779251980691_160_0_0.jpg"],i:"https://xcimg.szwego.com/img/15d7e607/20260520/i1779251980691_160_0_0.jpg",d:"05/28",code:"_dekqf44LkQvJihcJKVmSGRlP8VdV4QJ98vtiUSw",cat:"jacket"},
@@ -3638,6 +3638,34 @@ function generateOrder() {
   for (const [code, data] of Object.entries(orders)) {
     let sub = 0;
     const parts = [];
+
+// ===== v3 shard loader =====
+(async () => {
+  try {
+    const BASE = 'https://raw.githubusercontent.com/pkcompany0304/pk-order/main';
+    const manifest = await fetch(BASE + '/data/manifest.json?t=' + Date.now()).then(r => r.json());
+    const days = (manifest.days || []).sort();
+    const existingCodes = new Set(PRODUCTS.map(p => p.code));
+    const newItems = [];
+    for (const day of days) {
+      const shard = await fetch(BASE + '/data/products-' + day + '.json?t=' + Date.now()).then(r => r.json());
+      for (const item of shard) {
+        if (existingCodes.has(item.code)) continue;
+        if (!item.imgs) item.imgs = [item.i];
+        newItems.push(item);
+        existingCodes.add(item.code);
+      }
+    }
+    if (newItems.length > 0) {
+      PRODUCTS.unshift(...newItems);
+      if (typeof renderSample === 'function') renderSample();
+      const badge = document.getElementById('badgeCount');
+      if (badge) badge.textContent = PRODUCTS.length;
+      console.log('[shard] loaded ' + newItems.length + ' new items');
+    }
+  } catch(e) { console.warn('[shard] load failed:', e); }
+})();
+// ===========================
     data.items.forEach(({sz, color, qty}) => {
       sub += qty;
       parts.push(color !== '기본' ? `${color}${sz}-${qty}` : `${sz}-${qty}`);
