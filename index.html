@@ -117,6 +117,20 @@ body{font-family:'Pretendard',-apple-system,BlinkMacSystemFont,'SF Pro Display',
 .empty-state .empty-icon{font-size:48px;margin-bottom:12px}
 .empty-state .empty-text{font-size:15px;font-weight:600;color:#8e8e93}
 .empty-state .empty-sub{font-size:13px;margin-top:6px;color:#aeaeb2}
+
+.sample-thumb{position:relative;width:100%;aspect-ratio:3/4;overflow:hidden;background:#1a1a1a;cursor:pointer}
+.sample-thumb .img-strip{display:flex;width:100%;height:100%;transition:transform .22s ease;will-change:transform}
+.sample-thumb .img-strip img{flex-shrink:0;min-width:100%;height:100%;object-fit:cover;object-position:center 20%;display:block}
+.sample-photo-badge{position:absolute;top:6px;right:6px;background:rgba(0,0,0,.6);color:#fff;font-size:10px;font-weight:600;padding:2px 7px;border-radius:11px;pointer-events:none;z-index:2}
+.sg-overlay{position:fixed;inset:0;background:rgba(0,0,0,.94);z-index:99999;display:none;align-items:center;justify-content:center;flex-direction:column}
+.sg-overlay.show{display:flex}
+.sg-img{max-width:100%;max-height:80vh;object-fit:contain}
+.sg-counter{color:#fff;font-size:14px;margin-top:14px;letter-spacing:.5px}
+.sg-close{position:absolute;top:16px;right:20px;color:#fff;font-size:34px;font-weight:300;cursor:pointer;line-height:1}
+.sg-nav{position:absolute;top:50%;transform:translateY(-50%);color:#fff;font-size:44px;font-weight:300;cursor:pointer;padding:0 18px;user-select:none}
+.sg-prev{left:0}.sg-next{right:0}
+.sg-dots{display:flex;gap:6px;margin-top:12px;flex-wrap:wrap;justify-content:center;max-width:80%}
+.sg-dot{width:7px;height:7px;border-radius:50%;background:#666}.sg-dot.active{background:#fff}
 </style>
 </head>
 <body>
@@ -1553,7 +1567,7 @@ function saveDeleted() { localStorage.setItem('pk_deleted', JSON.stringify(delet
 function saveOrdered() { localStorage.setItem('pk_ordered', JSON.stringify(orderedCodes)); }
 
 // ===== 필터링 =====
-function getSampleProducts() {
+function _origGetSampleProducts() {
   return PRODUCTS.filter(p => !deletedCodes.includes(p.code) && !orderedCodes.includes(p.code));
 }
 function getOrderProducts() {
@@ -1624,9 +1638,9 @@ function renderSample() {
 
     html += `
     <div class="sample-card">
-      <img class="sample-card-img" src="${p.i}?imageMogr2/auto-orient/thumbnail/!400x400r/quality/75/format/jpg" alt="${p.code}" loading="lazy">
+      <div class="sample-thumb" ontouchstart="imgSwipeStart(event,this)" ontouchend="imgSwipeEnd(event,this)" onclick="openSampleGallery('${p.code}')">${sampleStrip(p)}${sampleDots(p)}${samplePhotoBadge(p)}</div>
       <div class="sample-card-body">
-        <div class="sample-card-name">${p.t}</div>
+        <div class="sample-card-name">${dispName(p)}</div>
         <div class="sample-card-price">₩${fmtKrw(totalKrw)}</div>
         <div class="sample-btn-row">
           <button class="btn-sample" onclick="sampleOrder('${p.code}')">사입 복사</button>
@@ -2066,6 +2080,34 @@ updateBadges();
     }
   } catch(e) { console.warn('[shard] failed:', e); }
 })();
+
+function _imgsOf(p){return (p&&p.imgs&&p.imgs.length)?p.imgs:[p.i];}
+function dispName(p){return (p&&p.tk)?p.tk:(p?p.t:'');}
+function _thumb(u){return u+'?imageMogr2/auto-orient/thumbnail/!400x400r/quality/75/format/jpg';}
+function _full(u){return u+'?imageMogr2/auto-orient/thumbnail/!900x900r/quality/82/format/jpg';}
+function sampleStrip(p){var a=_imgsOf(p);return '<div class="img-strip">'+a.map(function(u){return '<img src="'+_thumb(u)+'" alt="" loading="lazy">';}).join('')+'</div>';}
+function sampleDots(p){var a=_imgsOf(p);if(a.length<2)return '';var d='';for(var k=0;k<a.length;k++){d+='<span class="img-dot'+(k===0?' active':'')+'"></span>';}return '<div class="img-dots">'+d+'</div>';}
+function samplePhotoBadge(p){var n=_imgsOf(p).length;return n>1?'<span class="sample-photo-badge">\uD83D\uDCF7 '+n+'</span>':'';}
+var _sg=[],_sgi=0,_sgBound=false;
+function openSampleGallery(code){if(typeof event!=='undefined'&&event&&event.target&&event.target.closest('.img-strip')&&_sgSwiped){_sgSwiped=false;return;}var p=_findProd(code);if(!p)return;_sg=_imgsOf(p);_sgi=0;_sgRender();var ov=document.getElementById('sgOverlay');ov.classList.add('show');if(!_sgBound){var sx=0;ov.addEventListener('touchstart',function(e){sx=e.touches[0].clientX;},{passive:true});ov.addEventListener('touchend',function(e){var dx=e.changedTouches[0].clientX-sx;if(Math.abs(dx)>40)sgNav(dx<0?1:-1);},{passive:true});_sgBound=true;}}
+function _findProd(code){try{return PRODUCTS.find(function(x){return x.code===code;});}catch(e){return null;}}
+function closeSampleGallery(){var ov=document.getElementById('sgOverlay');if(ov)ov.classList.remove('show');}
+function sgNav(d){if(!_sg.length)return;_sgi=(_sgi+d+_sg.length)%_sg.length;_sgRender();}
+function _sgRender(){var im=document.getElementById('sgImg');im.src=_full(_sg[_sgi]);document.getElementById('sgCounter').textContent=(_sgi+1)+' / '+_sg.length;var dd='';for(var k=0;k<_sg.length;k++){dd+='<span class="sg-dot'+(k===_sgi?' active':'')+'"></span>';}document.getElementById('sgDots').innerHTML=_sg.length>1?dd:'';}
+var _sgSwiped=false;
+
+var SAMPLE_DAYS=5;
+function _dToTs(d){ if(!d) return 0; var m=String(d).match(/(\d{1,2})\/(\d{1,2})/); if(!m) return 0; var mo=+m[1], da=+m[2]; var now=new Date(); var y=now.getFullYear(); var dt=new Date(y,mo-1,da); if(dt.getTime()-now.getTime()>86400000*30) dt=new Date(y-1,mo-1,da); return dt.getTime(); }
+function getSampleProducts(){ var base=_origGetSampleProducts(); var cutoff=Date.now()-SAMPLE_DAYS*86400000-86400000; return base.filter(function(p){ var t=_dToTs(p.d); return t===0 ? true : t>=cutoff; }); }
 </script>
+
+<div class="sg-overlay" id="sgOverlay" onclick="if(event.target.id==='sgOverlay')closeSampleGallery()">
+<span class="sg-close" onclick="closeSampleGallery()">&times;</span>
+<span class="sg-nav sg-prev" onclick="sgNav(-1)">&#8249;</span>
+<img class="sg-img" id="sgImg" src="" alt="">
+<span class="sg-nav sg-next" onclick="sgNav(1)">&#8250;</span>
+<div class="sg-counter" id="sgCounter"></div>
+<div class="sg-dots" id="sgDots"></div>
+</div>
 </body>
 </html>
