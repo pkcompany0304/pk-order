@@ -131,6 +131,12 @@ body{font-family:'Pretendard',-apple-system,BlinkMacSystemFont,'SF Pro Display',
 .sg-prev{left:0}.sg-next{right:0}
 .sg-dots{display:flex;gap:6px;margin-top:12px;flex-wrap:wrap;justify-content:center;max-width:80%}
 .sg-dot{width:7px;height:7px;border-radius:50%;background:#666}.sg-dot.active{background:#fff}
+.thumb2up{display:flex;width:100%;height:100%;gap:1px;background:#000}
+.thumb2up img{width:50%;height:100%;object-fit:cover;object-position:center 18%;display:block}
+.thumb2up.one img{width:100%}
+.color-chips{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px}
+.cchip{font-size:10px;font-weight:600;color:#3a3a3c;background:#eef0f2;border-radius:8px;padding:2px 7px;line-height:1.5}
+.sample-card-name.expanded{-webkit-line-clamp:unset;display:block}
 </style>
 </head>
 <body>
@@ -210,7 +216,7 @@ const CAT_INFO = {
 const CAT_KEYS = Object.keys(CAT_INFO);
 
 // 마지막 업데이트: 2026-05-31 v3 shard-loader 적용
-const PRODUCTS = [
+let PRODUCTS = [
   {t:"72627#💰115¥ miu캐주얼롱팬츠！",p:115,s:"",i:"https://xcimg.szwego.com/img/2de07de3/20260522/i1779430700868_2482_0_0.jpg",d:"05/28",code:"72627",cat:"tee"},
   {t:"72580#💰85¥ Ac빈티지스타일나시。",p:85,s:"",i:"https://xcimg.szwego.com/img/12350b5c/20260422/i1776863982763_6525_0_0.jpg",d:"05/28",code:"72580",cat:"set2"},
   {t:"72590#💰129¥ 자수원피스👗",p:129,s:"",i:"https://xcimg.szwego.com/imgHD/3ff34a8a/20260517/cmp_i1778991818480_8064_0_0.jpg",d:"05/28",code:"72590",cat:"dress"},
@@ -1638,9 +1644,10 @@ function renderSample() {
 
     html += `
     <div class="sample-card">
-      <div class="sample-thumb" ontouchstart="imgSwipeStart(event,this)" ontouchend="imgSwipeEnd(event,this)" onclick="openSampleGallery('${p.code}')">${sampleStrip(p)}${sampleDots(p)}${samplePhotoBadge(p)}</div>
+      <div class="sample-thumb" onclick="openSampleGallery('${p.code}')">${sample2up(p)}${samplePhotoBadge(p)}</div>
       <div class="sample-card-body">
-        <div class="sample-card-name">${dispName(p)}</div>
+        ${colorChips(p)}
+        <div class="sample-card-name" onclick="this.classList.toggle('expanded')">${dispName(p)}</div>
         <div class="sample-card-price">₩${fmtKrw(totalKrw)}</div>
         <div class="sample-btn-row">
           <button class="btn-sample" onclick="sampleOrder('${p.code}')">사입 복사</button>
@@ -1737,7 +1744,7 @@ function renderOrder() {
     const colCount = displaySizes.length;
 
     // 색상: formats 파싱 우선, 없으면 기본 1행
-    const detectedColors = parsedColors.length > 0 ? parsedColors : [''];
+    const detectedColors = (p.colors && p.colors.length) ? p.colors : (parsedColors.length > 0 ? parsedColors : ['']);
 
     // 사이즈 헤더 행
     let sizeGridHtml = '<div class="size-header"></div>';
@@ -2075,9 +2082,10 @@ updateBadges();
     }
     if (newItems.length > 0) {
       PRODUCTS.unshift(...newItems);
-      if (typeof renderSample === 'function') renderSample();
-      console.log('[shard] loaded ' + newItems.length + ' new items, total=' + PRODUCTS.length);
     }
+    PRODUCTS = mergeDesigns(PRODUCTS);
+    if (typeof renderSample === 'function') renderSample();
+    console.log('[shard] loaded ' + newItems.length + ' items, merged cards=' + PRODUCTS.length);
   } catch(e) { console.warn('[shard] failed:', e); }
 })();
 
@@ -2105,6 +2113,12 @@ var _sgSwiped=false;
 var SAMPLE_DAYS=5;
 function _dToTs(d){ if(!d) return 0; var m=String(d).match(/(\d{1,2})\/(\d{1,2})/); if(!m) return 0; var mo=+m[1], da=+m[2]; var now=new Date(); var y=now.getFullYear(); var dt=new Date(y,mo-1,da); if(dt.getTime()-now.getTime()>86400000*30) dt=new Date(y-1,mo-1,da); return dt.getTime(); }
 function getSampleProducts(){ var base=_origGetSampleProducts(); var cutoff=Date.now()-SAMPLE_DAYS*86400000-86400000; return base.filter(function(p){ var t=_dToTs(p.d); return t===0 ? true : t>=cutoff; }); }
+function _recoverG(t){t=t||'';var m=t.match(/(?:款号|货号|款號|貨號)\s*[:：]?\s*#?(\d{3,6})/);if(m)return m[1];m=t.match(/^#?(\d{4,6})(?![\d])/);if(m)return m[1];m=t.match(/#(\d{3,6})#/);if(m)return m[1];return '';}
+function _grpKey(p){return (p.g&&String(p.g))||_recoverG(p.t)||p.code;}
+function mergeDesigns(arr){var map={},order=[];arr.forEach(function(p){var k=_grpKey(p);if(!map[k]){map[k]={m:[]};order.push(k);}map[k].m.push(p);});return order.map(function(k){var ms=map[k].m;var best=ms.slice().sort(function(a,b){return (b.t||'').length-(a.t||'').length;})[0];var imgs=[],seen={};ms.forEach(function(p){(p.imgs&&p.imgs.length?p.imgs:[p.i]).forEach(function(u){if(u&&!seen[u]){seen[u]=1;imgs.push(u);}});});imgs=imgs.slice(0,12);var cols=[],cs={};ms.forEach(function(p){(p.colors||[]).forEach(function(c){if(!cs[c]){cs[c]=1;cols.push(c);}});});var d=ms.map(function(p){return p.d;}).filter(Boolean).sort(function(a,b){return _dToTs(b)-_dToTs(a);})[0]||best.d;var cat=best.cat;if(cat==='tee'){var nz=ms.map(function(p){return p.cat;}).filter(function(c){return c&&c!=='tee';});if(nz.length)cat=nz[0];}return {t:best.t,p:best.p,s:best.s||'',i:imgs[0]||best.i,d:d,code:k,cat:cat,g:k,colors:cols,imgs:imgs,_n:ms.length};});}
+function sample2up(p){var a=_imgsOf(p);var oe="this.style.visibility='hidden'";if(a.length<2)return '<div class="thumb2up one"><img src="'+_thumb(a[0])+'" loading="lazy" onerror="'+oe+'"></div>';return '<div class="thumb2up"><img src="'+_thumb(a[0])+'" loading="lazy" onerror="'+oe+'"><img src="'+_thumb(a[1])+'" loading="lazy" onerror="'+oe+'"></div>';}
+function colorChips(p){var c=p.colors||[];if(!c.length)return '';return '<div class="color-chips">'+c.slice(0,4).map(function(x){return '<span class="cchip">'+x+'</span>';}).join('')+'</div>';}
+try{ if(typeof PRODUCTS!=='undefined'){ PRODUCTS=mergeDesigns(PRODUCTS); if(typeof renderSample==='function') renderSample(); } }catch(e){ console.warn('[merge-init]',e); }
 </script>
 
 <div class="sg-overlay" id="sgOverlay" onclick="if(event.target.id==='sgOverlay')closeSampleGallery()">
