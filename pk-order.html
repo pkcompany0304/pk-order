@@ -96,6 +96,19 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Apple SD Got
 .empty-state .empty-icon{font-size:48px;margin-bottom:12px}
 .empty-state .empty-text{font-size:15px;font-weight:600;color:#8e8e93}
 .empty-state .empty-sub{font-size:13px;margin-top:6px;color:#aeaeb2}
+
+.img-wrap{position:relative;cursor:pointer}.img-wrap-sm{position:relative;cursor:pointer}
+.photo-badge{position:absolute;top:6px;right:6px;background:rgba(0,0,0,.6);color:#fff;font-size:10px;font-weight:600;padding:2px 6px;border-radius:10px;pointer-events:none}
+.order-card .photo-badge{top:2px;right:2px;font-size:8px;padding:1px 4px}
+.gallery-overlay{position:fixed;inset:0;background:rgba(0,0,0,.93);z-index:9999;display:none;align-items:center;justify-content:center;flex-direction:column}
+.gallery-overlay.show{display:flex}
+.gallery-img{max-width:100%;max-height:78vh;object-fit:contain}
+.gallery-counter{color:#fff;font-size:14px;margin-top:14px}
+.gallery-close{position:absolute;top:16px;right:20px;color:#fff;font-size:32px;cursor:pointer;line-height:1}
+.gallery-nav{position:absolute;top:50%;transform:translateY(-50%);color:#fff;font-size:42px;cursor:pointer;padding:0 16px;user-select:none}
+.gallery-prev{left:0}.gallery-next{right:0}
+.gallery-dots{display:flex;gap:6px;margin-top:12px;flex-wrap:wrap;justify-content:center;max-width:80%}
+.gallery-dot{width:7px;height:7px;border-radius:50%;background:#666}.gallery-dot.active{background:#fff}
 </style>
 </head>
 <body>
@@ -3450,7 +3463,7 @@ function renderSample() {
 
     html += `
     <div class="sample-card">
-      <img class="sample-card-img" src="${p.i}?imageMogr2/auto-orient/thumbnail/!400x400r/quality/75/format/jpg" alt="${p.code}" loading="lazy">
+      <div class="img-wrap" onclick="openGallery('${p.code}')"><img class="sample-card-img" src="${p.i}?imageMogr2/auto-orient/thumbnail/!400x400r/quality/75/format/jpg" alt="${p.code}" loading="lazy">${photoBadge(p)}</div>
       <div class="sample-card-body">
         <div class="sample-card-name">${p.t}</div>
         <div class="sample-card-price">₩${fmtKrw(totalKrw)}</div>
@@ -3515,7 +3528,7 @@ function renderOrder() {
 
     html += `
     <div class="order-card" data-code="${p.code}">
-      <img class="order-card-img" src="${p.i}?imageMogr2/auto-orient/thumbnail/!400x400r/quality/75/format/jpg" alt="${p.code}" loading="lazy">
+      <div class="img-wrap-sm" onclick="openGallery('${p.code}')"><img class="order-card-img" src="${p.i}?imageMogr2/auto-orient/thumbnail/!400x400r/quality/75/format/jpg" alt="${p.code}" loading="lazy">${photoBadge(p)}</div>
       <div class="order-card-body">
         <div class="order-card-header">
           <div>
@@ -3720,6 +3733,23 @@ loadShards().then(() => {
   renderSample();
   updateBadges();
 });
+
+function photoBadge(p){var n=(p.imgs&&p.imgs.length)||1;return n>1?'<span class="photo-badge">\uD83D\uDCF7 '+n+'</span>':'';}
+var _gImgs=[],_gIdx=0,_gBound=false;
+function _imgUrl(u){return u+'?imageMogr2/auto-orient/thumbnail/!900x900r/quality/82/format/jpg';}
+function openGallery(code){var p=(typeof PRODUCTS!=='undefined')&&PRODUCTS.find(function(x){return x.code===code;});if(!p)return;_gImgs=(p.imgs&&p.imgs.length)?p.imgs:[p.i];_gIdx=0;_renderGallery();var ov=document.getElementById('galleryOverlay');ov.classList.add('show');if(!_gBound){var sx=0;ov.addEventListener('touchstart',function(e){sx=e.touches[0].clientX;},{passive:true});ov.addEventListener('touchend',function(e){var dx=e.changedTouches[0].clientX-sx;if(Math.abs(dx)>40)navGallery(dx<0?1:-1);},{passive:true});_gBound=true;}}
+function closeGallery(){var ov=document.getElementById('galleryOverlay');if(ov)ov.classList.remove('show');}
+function navGallery(d){if(!_gImgs.length)return;_gIdx=(_gIdx+d+_gImgs.length)%_gImgs.length;_renderGallery();}
+function _renderGallery(){var im=document.getElementById('galleryImg');im.src=_imgUrl(_gImgs[_gIdx]);document.getElementById('galleryCounter').textContent=(_gIdx+1)+' / '+_gImgs.length;var dd='';for(var k=0;k<_gImgs.length;k++){dd+='<span class="gallery-dot'+(k===_gIdx?' active':'')+'"></span>';}document.getElementById('galleryDots').innerHTML=_gImgs.length>1?dd:'';}
 </script>
+
+<div class="gallery-overlay" id="galleryOverlay" onclick="if(event.target.id==='galleryOverlay')closeGallery()">
+<span class="gallery-close" onclick="closeGallery()">&times;</span>
+<span class="gallery-nav gallery-prev" onclick="navGallery(-1)">&#8249;</span>
+<img class="gallery-img" id="galleryImg" src="" alt="">
+<span class="gallery-nav gallery-next" onclick="navGallery(1)">&#8250;</span>
+<div class="gallery-counter" id="galleryCounter"></div>
+<div class="gallery-dots" id="galleryDots"></div>
+</div>
 </body>
 </html>
