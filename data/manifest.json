@@ -2,9 +2,10 @@
   "days": [
     "2026-05-31",
     "2026-06-01",
-    "2026-06-02"
+    "2026-06-02",
+    "2026-06-03"
   ],
-  "lastCrawlDate": "2026-06-02",
-  "lastCrawlCount": 174,
-  "total": 3607
+  "lastCrawlDate": "2026-06-03",
+  "lastCrawlCount": 135,
+  "total": 3742
 }
