@@ -38,6 +38,7 @@ body{font-family:'Pretendard',-apple-system,BlinkMacSystemFont,'SF Pro Display',
 /* ===== 샘플 카드 ===== */
 .sample-card{background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.06)}
 .sample-card-img{width:100%;aspect-ratio:3/4;object-fit:cover;object-position:center 20%;display:block}
+.sample-thumb{position:relative;width:100%;aspect-ratio:3/4;overflow:hidden;background:#1a1a1a;cursor:pointer}
 .sample-card-body{padding:12px}
 .sample-card-name{font-size:13px;font-weight:600;color:#1c1c1e;line-height:1.4;margin-bottom:6px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;word-break:keep-all}
 .sample-card-price{font-size:15px;font-weight:700;color:#ff3b30;letter-spacing:-0.3px;margin-bottom:10px}
@@ -46,6 +47,17 @@ body{font-family:'Pretendard',-apple-system,BlinkMacSystemFont,'SF Pro Display',
 .btn-sample:active{opacity:.7;transform:scale(.97)}
 .btn-delete{flex:0 0 42px;padding:10px;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;background:#ff3b30;color:#fff;line-height:1;transition:transform .1s}
 .btn-delete:active{opacity:.7;transform:scale(.97)}
+
+/* ===== 풀스크린 이미지 뷰어 ===== */
+#imgViewer{position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.96);display:none;flex-direction:column;touch-action:none}
+#imgViewer.on{display:flex}
+#imgViewer .vw-strip{flex:1;display:flex;transition:transform .22s ease;will-change:transform;min-height:0}
+#imgViewer .vw-strip img{flex-shrink:0;min-width:100%;width:100%;height:100%;object-fit:contain}
+#imgViewer .vw-close{position:absolute;top:14px;right:16px;width:38px;height:38px;border:none;border-radius:50%;background:rgba(255,255,255,.16);color:#fff;font-size:19px;z-index:2;cursor:pointer}
+#imgViewer .vw-count{position:absolute;top:18px;left:18px;color:rgba(255,255,255,.85);font-size:13px;font-weight:600;z-index:2}
+#imgViewer .vw-dots{position:absolute;bottom:26px;left:50%;transform:translateX(-50%);display:flex;gap:6px;z-index:2}
+#imgViewer .vw-dot{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.4)}
+#imgViewer .vw-dot.active{background:#fff}
 
 /* ===== 발주 그리드 (새 디자인) ===== */
 .product-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:10px;padding-bottom:140px}
@@ -117,26 +129,6 @@ body{font-family:'Pretendard',-apple-system,BlinkMacSystemFont,'SF Pro Display',
 .empty-state .empty-icon{font-size:48px;margin-bottom:12px}
 .empty-state .empty-text{font-size:15px;font-weight:600;color:#8e8e93}
 .empty-state .empty-sub{font-size:13px;margin-top:6px;color:#aeaeb2}
-
-.sample-thumb{position:relative;width:100%;aspect-ratio:3/4;overflow:hidden;background:#1a1a1a;cursor:pointer}
-.sample-thumb .img-strip{display:flex;width:100%;height:100%;transition:transform .22s ease;will-change:transform}
-.sample-thumb .img-strip img{flex-shrink:0;min-width:100%;height:100%;object-fit:cover;object-position:center 20%;display:block}
-.sample-photo-badge{position:absolute;top:6px;right:6px;background:rgba(0,0,0,.6);color:#fff;font-size:10px;font-weight:600;padding:2px 7px;border-radius:11px;pointer-events:none;z-index:2}
-.sg-overlay{position:fixed;inset:0;background:rgba(0,0,0,.94);z-index:99999;display:none;align-items:center;justify-content:center;flex-direction:column}
-.sg-overlay.show{display:flex}
-.sg-img{max-width:100%;max-height:80vh;object-fit:contain}
-.sg-counter{color:#fff;font-size:14px;margin-top:14px;letter-spacing:.5px}
-.sg-close{position:absolute;top:16px;right:20px;color:#fff;font-size:34px;font-weight:300;cursor:pointer;line-height:1}
-.sg-nav{position:absolute;top:50%;transform:translateY(-50%);color:#fff;font-size:44px;font-weight:300;cursor:pointer;padding:0 18px;user-select:none}
-.sg-prev{left:0}.sg-next{right:0}
-.sg-dots{display:flex;gap:6px;margin-top:12px;flex-wrap:wrap;justify-content:center;max-width:80%}
-.sg-dot{width:7px;height:7px;border-radius:50%;background:#666}.sg-dot.active{background:#fff}
-.thumb2up{display:flex;width:100%;height:100%;gap:1px;background:#000}
-.thumb2up img{width:50%;height:100%;object-fit:cover;object-position:center 18%;display:block}
-.thumb2up.one img{width:100%}
-.color-chips{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px}
-.cchip{font-size:10px;font-weight:600;color:#3a3a3c;background:#eef0f2;border-radius:8px;padding:2px 7px;line-height:1.5}
-.sample-card-name.expanded{-webkit-line-clamp:unset;display:block}
 </style>
 </head>
 <body>
@@ -215,8 +207,8 @@ const CAT_INFO = {
 };
 const CAT_KEYS = Object.keys(CAT_INFO);
 
-// 마지막 업데이트: 2026-05-31 v3 shard-loader 적용
-let PRODUCTS = [
+// 마지막 업데이트: 2026-05-28 자동 크롤링 (2,956개 상품)
+const PRODUCTS = [
   {t:"72627#💰115¥ miu캐주얼롱팬츠！",p:115,s:"",i:"https://xcimg.szwego.com/img/2de07de3/20260522/i1779430700868_2482_0_0.jpg",d:"05/28",code:"72627",cat:"tee"},
   {t:"72580#💰85¥ Ac빈티지스타일나시。",p:85,s:"",i:"https://xcimg.szwego.com/img/12350b5c/20260422/i1776863982763_6525_0_0.jpg",d:"05/28",code:"72580",cat:"set2"},
   {t:"72590#💰129¥ 자수원피스👗",p:129,s:"",i:"https://xcimg.szwego.com/imgHD/3ff34a8a/20260517/cmp_i1778991818480_8064_0_0.jpg",d:"05/28",code:"72590",cat:"dress"},
@@ -1573,7 +1565,7 @@ function saveDeleted() { localStorage.setItem('pk_deleted', JSON.stringify(delet
 function saveOrdered() { localStorage.setItem('pk_ordered', JSON.stringify(orderedCodes)); }
 
 // ===== 필터링 =====
-function _origGetSampleProducts() {
+function getSampleProducts() {
   return PRODUCTS.filter(p => !deletedCodes.includes(p.code) && !orderedCodes.includes(p.code));
 }
 function getOrderProducts() {
@@ -1642,12 +1634,25 @@ function renderSample() {
       lastDate = uploadDate;
     }
 
+    // 이미지 갤러리: imgs[] 배열 우선, 없으면 단일 이미지 (인카드 스와이프)
+    const sImgArr = (p.imgs && p.imgs.length > 0) ? p.imgs : [p.i];
+    const sStripHtml = sImgArr.map((url, ii) =>
+      ii === 0
+        ? `<img src="${imgURL(url)}" fetchpriority="high" alt="${p.code}" onerror="this.style.display='none'">`
+        : `<img data-src="${imgURL(url)}" alt="${p.code}" onerror="this.style.display='none'">`
+    ).join('');
+    const sDotsHtml = sImgArr.length > 1
+      ? `<div class="img-dots">${sImgArr.map((_,ii) => `<div class="img-dot${ii===0?' active':''}"></div>`).join('')}</div>`
+      : '';
+
     html += `
     <div class="sample-card">
-      <div class="sample-thumb" onclick="openSampleGallery('${p.code}')">${sample2up(p)}${samplePhotoBadge(p)}</div>
+      <div class="sample-thumb" ontouchstart="imgSwipeStart(event,this)" ontouchend="imgSwipeEnd(event,this)" onmouseenter="hydrateStrip(this)" onclick="cardThumbClick(event,this)">
+        <div class="img-strip">${sStripHtml}</div>
+        ${sDotsHtml}
+      </div>
       <div class="sample-card-body">
-        ${colorChips(p)}
-        <div class="sample-card-name" onclick="this.classList.toggle('expanded')">${dispName(p)}</div>
+        <div class="sample-card-name">${p.t}</div>
         <div class="sample-card-price">₩${fmtKrw(totalKrw)}</div>
         <div class="sample-btn-row">
           <button class="btn-sample" onclick="sampleOrder('${p.code}')">사입 복사</button>
@@ -1744,7 +1749,7 @@ function renderOrder() {
     const colCount = displaySizes.length;
 
     // 색상: formats 파싱 우선, 없으면 기본 1행
-    const detectedColors = (p.colors && p.colors.length) ? p.colors : (parsedColors.length > 0 ? parsedColors : ['']);
+    const detectedColors = parsedColors.length > 0 ? parsedColors : [''];
 
     // 사이즈 헤더 행
     let sizeGridHtml = '<div class="size-header"></div>';
@@ -1762,7 +1767,9 @@ function renderOrder() {
     // 이미지 갤러리: imgs[] 배열 우선, 없으면 단일 이미지
     const imgArr = (p.imgs && p.imgs.length > 0) ? p.imgs : [p.i];
     const imgStripHtml = imgArr.map((url, ii) =>
-      `<img src="${url}?imageMogr2/auto-orient/thumbnail/!400x400r/quality/75/format/jpg" loading="${ii===0?'eager':'lazy'}" onerror="this.style.display='none'">`
+      ii === 0
+        ? `<img src="${imgURL(url)}" fetchpriority="high" onerror="this.style.display='none'">`
+        : `<img data-src="${imgURL(url)}" onerror="this.style.display='none'">`
     ).join('');
     const dotsHtml = imgArr.length > 1
       ? `<div class="img-dots">${imgArr.map((_,ii) => `<div class="img-dot${ii===0?' active':''}"></div>`).join('')}</div>`
@@ -1770,7 +1777,7 @@ function renderOrder() {
 
     html += `
     <div class="order-card" data-code="${p.code}" data-sizes="${displaySizes.join('/')}">
-      <div class="product-thumb" ontouchstart="imgSwipeStart(event,this)" ontouchend="imgSwipeEnd(event,this)">
+      <div class="product-thumb" ontouchstart="imgSwipeStart(event,this)" ontouchend="imgSwipeEnd(event,this)" onmouseenter="hydrateStrip(this)" onclick="cardThumbClick(event,this)">
         <div class="img-strip">${imgStripHtml}</div>
         ${dotsHtml}
         <span class="product-badge">#${p.code}</span>
@@ -1815,12 +1822,31 @@ function makeColorRowGrid(code, sizes, colorName) {
 }
 
 // ===== 이미지 갤러리 스와이프 =====
+// 카드 썸네일 이미지 URL (progressive JPEG = 점진 렌더 → 체감 속도↑)
+function imgURL(u) {
+  return u + '?imageMogr2/auto-orient/thumbnail/!400x400r/quality/75/interlace/1/format/jpg';
+}
+// 터치/호버 즉시 그 카드의 모든 이미지를 한 번에 선로딩 → 스와이프가 즉각적
+function hydrateStrip(thumb) {
+  const strip = thumb.querySelector('.img-strip');
+  if (!strip || strip.dataset.hyd) return;
+  strip.dataset.hyd = '1';
+  strip.querySelectorAll('img[data-src]').forEach(img => {
+    img.src = img.dataset.src;
+    img.removeAttribute('data-src');
+  });
+}
+
 let _imgSwX = 0, _imgSwY = 0;
+let _lastTouchTs = 0;
 function imgSwipeStart(e, thumb) {
+  _lastTouchTs = Date.now();
+  hydrateStrip(thumb);              // 손가락 닿는 순간 전체 선로딩 시작
   const t = e.touches[0];
   _imgSwX = t.clientX; _imgSwY = t.clientY;
 }
 function imgSwipeEnd(e, thumb) {
+  _lastTouchTs = Date.now();
   const t = e.changedTouches[0];
   const dx = t.clientX - _imgSwX;
   const dy = t.clientY - _imgSwY;
@@ -1828,21 +1854,94 @@ function imgSwipeEnd(e, thumb) {
   if (Math.abs(dx) < 18) { // tap
     const rect = thumb.getBoundingClientRect();
     const tapX = (t.clientX - rect.left) / rect.width;
-    if (tapX < 0.35) imgNav(thumb, -1);
-    else if (tapX > 0.65) imgNav(thumb, 1);
+    if (tapX < 0.3) imgNav(thumb, -1);
+    else if (tapX > 0.7) imgNav(thumb, 1);
+    else openViewer(thumb);         // 중앙 탭 → 풀스크린
     return;
   }
   imgNav(thumb, dx < 0 ? 1 : -1);
 }
+// 데스크톱(마우스) 클릭 — 터치로 이미 처리된 클릭은 무시
+function cardThumbClick(e, thumb) {
+  if (Date.now() - _lastTouchTs < 700) return;
+  const rect = thumb.getBoundingClientRect();
+  const x = (e.clientX - rect.left) / rect.width;
+  if (x < 0.3) imgNav(thumb, -1);
+  else if (x > 0.7) imgNav(thumb, 1);
+  else openViewer(thumb);
+}
 function imgNav(thumb, dir) {
   const strip = thumb.querySelector('.img-strip');
   if (!strip) return;
+  hydrateStrip(thumb);
   const total = strip.querySelectorAll('img').length;
   if (total <= 1) return;
   let idx = (parseInt(strip.dataset.idx || '0') + dir + total) % total;
   strip.dataset.idx = idx;
   strip.style.transform = 'translateX(-' + (idx * 100) + '%)';
   thumb.querySelectorAll('.img-dot').forEach((d, i) => d.classList.toggle('active', i === idx));
+}
+
+// ===== 풀스크린 이미지 뷰어 =====
+let _vwImgs = [], _vwIdx = 0;
+function vwURL(u) {
+  const base = u.split('?')[0];   // 카드 썸네일 쿼리 제거 후 고해상도 재요청
+  return base + '?imageMogr2/auto-orient/thumbnail/!750x1000r/quality/82/interlace/1/format/jpg';
+}
+function buildViewer() {
+  if (document.getElementById('imgViewer')) return;
+  const v = document.createElement('div');
+  v.id = 'imgViewer';
+  v.innerHTML = '<button class="vw-close" onclick="closeViewer()">✕</button><div class="vw-count"></div><div class="vw-strip"></div><div class="vw-dots"></div>';
+  v.addEventListener('touchstart', vwStart, { passive: true });
+  v.addEventListener('touchend', vwEnd, { passive: true });
+  document.body.appendChild(v);
+}
+function openViewer(thumb) {
+  const strip = thumb.querySelector('.img-strip');
+  if (!strip) return;
+  const imgs = [...strip.querySelectorAll('img')].map(im => im.dataset.src || im.src).filter(Boolean);
+  if (!imgs.length) return;
+  buildViewer();
+  _vwImgs = imgs;
+  _vwIdx = parseInt(strip.dataset.idx || '0') || 0;
+  const v = document.getElementById('imgViewer');
+  v.querySelector('.vw-strip').innerHTML = imgs.map(u => `<img src="${vwURL(u)}" onerror="this.style.opacity=.3">`).join('');
+  v.querySelector('.vw-dots').innerHTML = imgs.length > 1 ? imgs.map(() => '<div class="vw-dot"></div>').join('') : '';
+  vwRender(true);
+  v.classList.add('on');
+  document.body.style.overflow = 'hidden';
+}
+function vwRender(instant) {
+  const v = document.getElementById('imgViewer');
+  if (!v) return;
+  const vs = v.querySelector('.vw-strip');
+  if (instant) vs.style.transition = 'none';
+  vs.style.transform = 'translateX(-' + (_vwIdx * 100) + '%)';
+  if (instant) requestAnimationFrame(() => { vs.style.transition = ''; });
+  v.querySelector('.vw-count').textContent = _vwImgs.length > 1 ? (_vwIdx + 1) + ' / ' + _vwImgs.length : '';
+  v.querySelectorAll('.vw-dot').forEach((d, i) => d.classList.toggle('active', i === _vwIdx));
+}
+function vwGo(dir) { _vwIdx = (_vwIdx + dir + _vwImgs.length) % _vwImgs.length; vwRender(false); }
+function closeViewer() {
+  const v = document.getElementById('imgViewer');
+  if (v) v.classList.remove('on');
+  document.body.style.overflow = '';
+}
+let _vwX = 0, _vwY = 0;
+function vwStart(e) { const t = e.touches[0]; _vwX = t.clientX; _vwY = t.clientY; }
+function vwEnd(e) {
+  const t = e.changedTouches[0];
+  const dx = t.clientX - _vwX, dy = t.clientY - _vwY;
+  if (Math.abs(dy) > Math.abs(dx) + 10) { if (dy > 70) closeViewer(); return; } // 아래로 끌면 닫기
+  if (Math.abs(dx) < 18) {
+    const w = window.innerWidth, x = t.clientX;
+    if (x < w * 0.3) vwGo(-1);
+    else if (x > w * 0.7) vwGo(1);
+    else closeViewer();
+    return;
+  }
+  vwGo(dx < 0 ? 1 : -1);
 }
 
 function addColorRowGrid(code) {
@@ -2061,73 +2160,5 @@ fetchExchangeRate();
 renderSample();
 updateBadges();
 </script>
-
-<script>
-// v3 shard loader (2026-05-31)
-(async () => {
-  try {
-    const BASE = 'https://raw.githubusercontent.com/pkcompany0304/pk-order/main';
-    const manifest = await fetch(BASE + '/data/manifest.json?t=' + Date.now()).then(r => r.json());
-    const days = (manifest.days || []).sort();
-    const existingCodes = new Set(PRODUCTS.map(p => p.code));
-    const newItems = [];
-    for (const day of days) {
-      const shard = await fetch(BASE + '/data/products-' + day + '.json?t=' + Date.now()).then(r => r.json());
-      for (const item of shard) {
-        if (existingCodes.has(item.code)) continue;
-        if (!item.imgs) item.imgs = [item.i];
-        newItems.push(item);
-        existingCodes.add(item.code);
-      }
-    }
-    if (newItems.length > 0) {
-      PRODUCTS.unshift(...newItems);
-    }
-    PRODUCTS = mergeDesigns(PRODUCTS);
-    if (typeof renderSample === 'function') renderSample();
-    console.log('[shard] loaded ' + newItems.length + ' items, merged cards=' + PRODUCTS.length);
-  } catch(e) { console.warn('[shard] failed:', e); }
-})();
-
-function _imgsOf(p){return (p&&p.imgs&&p.imgs.length)?p.imgs:[p.i];}
-
-var ZH_KO_DICT={"模特实拍图片已保护":"모델실착(사진보호)","新品上架四叶草字母提花短裤":"신상 클로버 자카드 반바지","若隐若现时尚小心机":"은은한 비침 포인트","版型属于谁都好驾驭的":"누구나 소화 가능한 핏","上身精致又干练得体":"착용시 단정하고 세련됨","搭配起来随心":"코디 자유로움","胸口马车图案刺绣":"가슴 마차 자수","气质优雅女神范修身长款大衣裙":"우아한 슬림 롱코트원피스","极简风天丝棉":"미니멀 텐셀코튼","阔腿长裤两件套极简风牛仔":"와이드팬츠 데님 투피스","连帽抽绳拉链外套长裤":"후드 집업 자켓+팬츠","翻领拉链夹克外套短裤":"카라 집업자켓+반바지","收腰马甲短裤":"허리 베스트+반바지","格子拼接上衣百褶短裙":"체크 상의+플리츠 스커트","马甲格子拼接长裤":"베스트+체크 팬츠","连帽拉链外套":"후드 집업","连帽外套长裤":"후드 자켓+팬츠","休闲运动时尚":"캐주얼 스포티","短款夹克外套半裙":"숏 자켓+스커트","满印提花拉链外套":"전판 자카드 집업","经典格纹拼接":"클래식 체크 배색","轻奢满印小香风阔腿裤":"샤넬풍 전판프린트 와이드팬츠","皮版装饰无袖衬衫":"가죽패치 민소매 셔츠","简约图案印花格纹":"심플 프린트 체크","经典提花":"클래식 자카드","爆款拼色":"인기 배색","少女风娃娃领无袖连衣裙":"걸리시 카라 민소매 원피스","蜜蜂刺绣小短款衬衫":"벌자수 크롭 셔츠","小香风针织套装":"샤넬풍 니트 세트","薄款针织套装":"얇은 니트 세트","小香风针织打底衫":"샤넬풍 니트 이너","小香风烫钻针织短袖":"샤넬풍 큐빅 니트 반팔","小香风针织短袖":"샤넬풍 니트 반팔","条纹针织衫中袖":"스트라이프 니트 7부","夏款针织背心":"여름 니트 베스트","拼格针织短袖":"체크배색 니트 반팔","缪系针织套装":"미우미우풍 니트 세트","家针织连衣裙":"니트 원피스","夏日必备单品":"여름 필수템","超时髦新款丹宁牛仔":"트렌디 데님","春夏最新款":"S/S 신상","提花压褶连衣裙":"자카드 플리츠 원피스","新款背心裙":"신상 베스트 원피스","经典款设计":"클래식 디자인","新款翻领连衣裙":"신상 카라 원피스","少女风":"걸리시","防晒套装":"자외선차단 세트","连帽两件套套装":"후드 투피스 세트","短袖外套百褶半裙套装":"반팔자켓+플리츠스커트 세트","新品上架":"신상 입고","现货秒发":"즉시발송","现货":"현품","所见所得":"보이는대로","细节实拍图":"디테일 실착","大货实拍图":"실물 촬영","上身图":"착용컷","实拍图":"실착컷","尺码表":"사이즈표","尺寸表":"사이즈표","直播版本":"라이브 버전","一套搭配有":"세트 구성","箱包印花链条":"백 프린트 체인","城景圆领印花":"시티 라운드넥 프린트","斜纹棉麻材质":"트윌 린넨코튼","金属拉链":"메탈 지퍼","微透视":"시스루","质感十足":"고급스러운 질감","经典款":"클래식","夏日必备":"여름 필수","半身裙套装":"스커트 세트","圆领上衣":"라운드넥 상의","两件套套装":"투피스 세트","修身印花打底衫":"슬림 프린트 이너","简约衬衣":"심플 셔츠","条纹上衣":"스트라이프 상의","拉链皮牌半裙":"지퍼 가죽라벨 스커트","带帽休闲":"후드 캐주얼","皮牌":"가죽라벨","套装":"세트","两件套":"투피스","三件套":"쓰리피스","连衣裙":"원피스","背心裙":"베스트 원피스","半身裙":"스커트","百褶":"플리츠","短裙":"미니스커트","长裙":"롱스커트","裙子":"스커트","针织":"니트","毛衣":"스웨터","衬衫":"셔츠","衬衣":"셔츠","外套":"아우터","夹克":"자켓","大衣":"코트","风衣":"트렌치코트","西装":"수트","开衫":"가디건","卫衣":"맨투맨","T恤":"티셔츠","恤":"셔츠","背心":"베스트","马甲":"베스트","吊带":"슬립","无袖":"민소매","短袖":"반팔","长袖":"긴팔","中袖":"7부소매","阔腿裤":"와이드팬츠","阔腿长裤":"와이드 롱팬츠","牛仔裤":"청바지","牛仔":"데님","直筒裤":"일자팬츠","短裤":"반바지","长裤":"롱팬츠","裤子":"팬츠","打底衫":"이너","上衣":"상의","连帽":"후드","翻领":"카라","圆领":"라운드넥","娃娃领":"피터팬카라","收腰":"허리절개","修身":"슬림핏","廓形":"오버핏","小香风":"샤넬풍","提花":"자카드","压褶":"플리츠","刺绣":"자수","印花":"프린트","格纹":"체크","格子":"체크","条纹":"스트라이프","拼接":"배색","拼色":"배색","满印":"전판프린트","烫钻":"큐빅","字母":"레터링","四叶草":"클로버","蜜蜂":"벌무늬","马车":"마차","链条":"체인","天丝":"텐셀","棉麻":"린넨코튼","丹宁":"데님","抽绳":"스트링","拉链":"지퍼","金属":"메탈","气质":"우아","优雅":"우아","简约":"심플","经典":"클래식","时尚":"패션","休闲":"캐주얼","运动":"스포티","百搭":"베이직","爆款":"인기상품","新款":"신상","春夏":"S/S","夏款":"여름","薄款":"얇은","厚款":"두꺼운","特价":"특가","批":"도매","价格":"가격","元":"위안","斤":"근","颜色":"컬러","尺码":"사이즈","尺寸":"사이즈","款号":"품번","均码":"프리사이즈","只有":"한정","推荐":"추천","质感":"질감","面料":"원단","版型":"핏","上身":"착용","黑色":"블랙","白色":"화이트","粉色":"핑크","蓝色":"블루","灰色":"그레이","黄色":"옐로우","红色":"레드","绿色":"그린","紫色":"퍼플","米色":"베이지","杏色":"베이지","卡其":"카키","藏青":"네이비","深灰":"다크그레이","炒灰色":"그레이","喷砂黑":"매트블랙","米杏":"라이트베이지","黑白两色":"블랙·화이트","小红":"레드","深":"다크","浅":"라이트","黑":"블랙","白":"화이트","粉":"핑크","蓝":"블루","灰":"그레이","红":"레드","绿":"그린","黄":"옐로우","紫":"퍼플","杏":"베이지"};
-var ZH_KO_DICT2={"上新原单高版本":"신상 오리지널","酵洗个性色调":"효소워싱 개성컬러","口袋装饰立体花边":"포켓 입체프릴","特殊材质有肌理感":"특수소재 질감","后袋亮片设计微喇":"뒷포켓 스팽글 부츠컷","凯旋门高领":"개선문 하이넥","十字架烧花":"크로스 번아웃","克罗心国旗":"크롬하츠 국기","出货即爆单":"출고즉시 완판","定制进口密度":"수입 고밀도","一系列出品":"시리즈 출시","高版出品":"하이퀄리티","个性色调":"개성컬러","上新":"신상","发售":"발매","装饰":"장식","可乖的风格":"러블리 스타일","腰带":"벨트","中性":"유니섹스","口袋":"포켓","皮肩带":"가죽숄더","全棉":"순면","剪毛边":"컷오프","独家首发":"단독발매","又酷":"쿨한","定位":"포지셔닝","超重工":"고퀄디테일","老花裤":"로고패턴 팬츠","撞色棒球":"배색 베이스볼","明星同款":"셀럽착용","干净清爽":"깔끔한","撞色":"배색","国旗":"국기","防晒":"자외선차단","最酷的":"가장힙한","微喇":"부츠컷","亮片":"스팽글","烧花":"번아웃","刺青":"타투","拼接":"배색","压线":"스티치","高领":"하이넥","半高领":"세미하이넥","落肩":"드롭숄더","泡泡袖":"퍼프소매","荷叶边":"러플","花边":"레이스","蕾丝":"레이스","纽扣":"버튼","口袋装饰":"포켓장식","立体":"입체","肌理":"질감","材质":"소재","进口":"수입","密度":"밀도","原单":"오리지널","高版":"하이버전","版本":"버전","出品":"출시","出货":"출고","爆单":"완판","首发":"단독","系列":"시리즈","酵洗":"효소워싱","色调":"컬러","个性":"개성","风格":"스타일","同款":"동일상품","明星":"셀럽","特":"특가","款":"","棒球":"베이스볼","十字架":"크로스","克罗心":"크롬하츠","凯旋门":"개선문"};
-Object.keys(ZH_KO_DICT2).forEach(function(k){if(!(k in ZH_KO_DICT))ZH_KO_DICT[k]=ZH_KO_DICT2[k];});
-var _ZH_KEYS=Object.keys(ZH_KO_DICT).sort(function(a,b){return b.length-a.length;});
-function translateZH(t){ if(!t) return t; var out=t; for(var i=0;i<_ZH_KEYS.length;i++){ var k=_ZH_KEYS[i]; if(out.indexOf(k)>=0){ out=out.split(k).join(ZH_KO_DICT[k]); } } return out; }
-function dispName(p){if(!p)return '';if(p.tk)return p.tk;return translateZH(p.t||'');}
-function _thumb(u){return u+'?imageMogr2/auto-orient/thumbnail/!400x400r/quality/75/format/jpg';}
-function _full(u){return u+'?imageMogr2/auto-orient/thumbnail/!900x900r/quality/82/format/jpg';}
-function sampleStrip(p){var a=_imgsOf(p);return '<div class="img-strip">'+a.map(function(u){return '<img src="'+_thumb(u)+'" alt="" loading="lazy">';}).join('')+'</div>';}
-function sampleDots(p){var a=_imgsOf(p);if(a.length<2)return '';var d='';for(var k=0;k<a.length;k++){d+='<span class="img-dot'+(k===0?' active':'')+'"></span>';}return '<div class="img-dots">'+d+'</div>';}
-function samplePhotoBadge(p){var n=_imgsOf(p).length;return n>1?'<span class="sample-photo-badge">\uD83D\uDCF7 '+n+'</span>':'';}
-var _sg=[],_sgi=0,_sgBound=false;
-function openSampleGallery(code){if(typeof event!=='undefined'&&event&&event.target&&event.target.closest('.img-strip')&&_sgSwiped){_sgSwiped=false;return;}var p=_findProd(code);if(!p)return;_sg=_imgsOf(p);_sgi=0;_sgRender();var ov=document.getElementById('sgOverlay');ov.classList.add('show');if(!_sgBound){var sx=0;ov.addEventListener('touchstart',function(e){sx=e.touches[0].clientX;},{passive:true});ov.addEventListener('touchend',function(e){var dx=e.changedTouches[0].clientX-sx;if(Math.abs(dx)>40)sgNav(dx<0?1:-1);},{passive:true});_sgBound=true;}}
-function _findProd(code){try{return PRODUCTS.find(function(x){return x.code===code;});}catch(e){return null;}}
-function closeSampleGallery(){var ov=document.getElementById('sgOverlay');if(ov)ov.classList.remove('show');}
-function sgNav(d){if(!_sg.length)return;_sgi=(_sgi+d+_sg.length)%_sg.length;_sgRender();}
-function _sgRender(){var im=document.getElementById('sgImg');im.src=_full(_sg[_sgi]);document.getElementById('sgCounter').textContent=(_sgi+1)+' / '+_sg.length;var dd='';for(var k=0;k<_sg.length;k++){dd+='<span class="sg-dot'+(k===_sgi?' active':'')+'"></span>';}document.getElementById('sgDots').innerHTML=_sg.length>1?dd:'';}
-var _sgSwiped=false;
-
-var SAMPLE_DAYS=5;
-function _dToTs(d){ if(!d) return 0; var m=String(d).match(/(\d{1,2})\/(\d{1,2})/); if(!m) return 0; var mo=+m[1], da=+m[2]; var now=new Date(); var y=now.getFullYear(); var dt=new Date(y,mo-1,da); if(dt.getTime()-now.getTime()>86400000*30) dt=new Date(y-1,mo-1,da); return dt.getTime(); }
-function getSampleProducts(){ var base=_origGetSampleProducts(); var cutoff=Date.now()-SAMPLE_DAYS*86400000-86400000; return base.filter(function(p){ var t=_dToTs(p.d); return t===0 ? true : t>=cutoff; }); }
-function _recoverG(t){t=t||'';var m=t.match(/(?:款号|货号|款號|貨號)\s*[:：]?\s*#?(\d{3,6})/);if(m)return m[1];m=t.match(/^#?(\d{4,6})(?![\d])/);if(m)return m[1];m=t.match(/#(\d{3,6})#/);if(m)return m[1];return '';}
-function _grpKey(p){return (p.g&&String(p.g))||_recoverG(p.t)||p.code;}
-function mergeDesigns(arr){var map={},order=[];arr.forEach(function(p){var k=_grpKey(p);if(!map[k]){map[k]={m:[]};order.push(k);}map[k].m.push(p);});return order.map(function(k){var ms=map[k].m;var best=ms.slice().sort(function(a,b){return (b.t||'').length-(a.t||'').length;})[0];var imgs=[],seen={};ms.forEach(function(p){(p.imgs&&p.imgs.length?p.imgs:[p.i]).forEach(function(u){if(u&&!seen[u]){seen[u]=1;imgs.push(u);}});});imgs=imgs.slice(0,12);var cols=[],cs={};ms.forEach(function(p){(p.colors||[]).forEach(function(c){if(!cs[c]){cs[c]=1;cols.push(c);}});});var d=ms.map(function(p){return p.d;}).filter(Boolean).sort(function(a,b){return _dToTs(b)-_dToTs(a);})[0]||best.d;var cat=best.cat;if(cat==='tee'){var nz=ms.map(function(p){return p.cat;}).filter(function(c){return c&&c!=='tee';});if(nz.length)cat=nz[0];}return {t:best.t,p:best.p,s:best.s||'',i:imgs[0]||best.i,d:d,code:k,cat:cat,g:k,colors:cols,imgs:imgs,_n:ms.length};});}
-function sample2up(p){var a=_imgsOf(p);var oe="this.style.visibility='hidden'";if(a.length<2)return '<div class="thumb2up one"><img src="'+_thumb(a[0])+'" loading="lazy" onerror="'+oe+'"></div>';return '<div class="thumb2up"><img src="'+_thumb(a[0])+'" loading="lazy" onerror="'+oe+'"><img src="'+_thumb(a[1])+'" loading="lazy" onerror="'+oe+'"></div>';}
-function colorChips(p){var c=p.colors||[];if(!c.length)return '';return '<div class="color-chips">'+c.slice(0,4).map(function(x){return '<span class="cchip">'+x+'</span>';}).join('')+'</div>';}
-try{ if(typeof PRODUCTS!=='undefined'){ PRODUCTS=mergeDesigns(PRODUCTS); if(typeof renderSample==='function') renderSample(); } }catch(e){ console.warn('[merge-init]',e); }
-</script>
-
-<div class="sg-overlay" id="sgOverlay" onclick="if(event.target.id==='sgOverlay')closeSampleGallery()">
-<span class="sg-close" onclick="closeSampleGallery()">&times;</span>
-<span class="sg-nav sg-prev" onclick="sgNav(-1)">&#8249;</span>
-<img class="sg-img" id="sgImg" src="" alt="">
-<span class="sg-nav sg-next" onclick="sgNav(1)">&#8250;</span>
-<div class="sg-counter" id="sgCounter"></div>
-<div class="sg-dots" id="sgDots"></div>
-</div>
 </body>
 </html>
